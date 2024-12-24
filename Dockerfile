@@ -31,7 +31,7 @@ RUN useradd -m fastapi_user && \
 #RUN chmod -R u+w /logs
 
 # 复制源码文件
-COPY ./src /app
+COPY ./ems-sdk /app
 
 # 切换到非 root 用户
 USER fastapi_user
@@ -40,4 +40,4 @@ USER fastapi_user
 EXPOSE 8000
 
 # 入口命令
-ENTRYPOINT ["uvicorn", "app:fastapi_app", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_config.json"]
+ENTRYPOINT ["uvicorn", "app:api", "--host", "0.0.0.0", "--port", "8000", "--log-config", "log_config.json"]

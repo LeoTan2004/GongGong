@@ -39,7 +39,8 @@ class StudentTranscriptGetter(Handler[ScoreBoard]):
 
         async with self.get_async_session(session) as ems_session:
             logger.debug(f'[{self.__class__.__name__}] 正在异步获取数据-{self.url()}')
-            resp = await ems_session.post(url=self.url(), data=_data, timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT)
+            resp = await ems_session.post(url=self.url(), data=_data, timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT,
+                                          allow_redirects=False)
             if resp.status == 200:
                 pdf = PDF(BytesIO(await resp.content.read()))
                 return self._extra_info(pdf)
@@ -47,7 +48,8 @@ class StudentTranscriptGetter(Handler[ScoreBoard]):
     def handler(self, session: Session, *args, **kwargs):
         with self.get_session(session) as ems_session:
             logger.debug(f'[{self.__class__.__name__}] 正在获取数据-{self.url()}')
-            resp = ems_session.post(url=self.url(), data=_data, timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT)
+            resp = ems_session.post(url=self.url(), data=_data, timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT,
+                                    allow_redirects=False)
             if resp.status_code == 200:
                 pdf = PDF(BytesIO(resp.content))
                 return self._extra_info(pdf)
@@ -143,7 +145,6 @@ class StudentTranscriptGetter(Handler[ScoreBoard]):
                 case '辅修专业学士学位学分要求':
                     _, h = scoreboard.total_credit
                     scoreboard.total_credit = (v, h)
-
 
 
 @cache

@@ -4,4 +4,4 @@ from pydantic import BaseModel
 
 class Session(BaseModel):
     """会话类，用于存储会话信息"""
-    session_id: str
+    token: str

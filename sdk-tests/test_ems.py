@@ -1,7 +1,6 @@
 from unittest import TestCase
 from unittest.async_case import IsolatedAsyncioTestCase
 
-from common_data import account
 from xtu_ems.ems.account import AuthenticationAccount
 from xtu_ems.ems.ems import QZEducationalManageSystem
 
@@ -9,6 +8,7 @@ from xtu_ems.ems.ems import QZEducationalManageSystem
 class TestQZEducationalManageSystem(TestCase):
     def test_login(self):
         """测试登录"""
+        from common_data import account
         ems = QZEducationalManageSystem()
         session = ems.login(account)
         self.assertIsNotNone(session)
@@ -27,6 +27,7 @@ class TestQZEducationalManageSystem(TestCase):
 class TestAsyncQZEducationalManageSystem(IsolatedAsyncioTestCase):
     async def test_async_login(self):
         """测试异步登录"""
+        from common_data import account
         ems = QZEducationalManageSystem()
         res = await ems.async_login(account)
         self.assertIsNotNone(res)

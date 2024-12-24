@@ -26,10 +26,10 @@ jobs:
         env:
           XTU_USERNAME: ${{ secrets.XTU_USERNAME }}
           XTU_PASSWORD: ${{ secrets.XTU_PASSWORD }}
-          PYTHONPATH: "${{ github.workspace }}/src"
-        working-directory: ./tests
+          PYTHONPATH: "${{ github.workspace }}/ems-sdk"
         run: |
-          pip install pytest pytest-html pytest-xdist
+          pip install pytest pytest-html pytest-xdist httpx
+          cd sdk-tests
           pytest -n auto --html=test-reports/report-${{ matrix.python-version }}.html --self-contained-html
 
       - name: Upload pytest test results
@@ -37,7 +37,7 @@ jobs:
         with:
           compression-level: 0
           name: pytest-results-${{ matrix.python-version }}
-          path: tests/test-reports/report-${{ matrix.python-version }}.html
+          path: sdk-tests/test-reports/report-${{ matrix.python-version }}.html
           # Use always() to always run this step to publish test results when there are test failures
         if: ${{ always() }}
 
@@ -50,4 +50,4 @@ jobs:
           compression-level: 9
           name: dist-${{ matrix.python-version }}
           path: |
-            dist/xtu_ems-**.whl
+            ./ems-sdk/dist/xtu_ems-**.whl

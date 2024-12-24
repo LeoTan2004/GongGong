@@ -62,13 +62,13 @@ sudo docker-compose up -d
 
 2. 检查端口
 
-   服务将会使用***8000***端口，在启动之前建议先检查一下端口的使用情况，如果端口正在使用嗯，你可以在`src/app.py`
+   服务将会使用***8000***端口，在启动之前建议先检查一下端口的使用情况，如果端口正在使用嗯，你可以在`ems-sdk/app.py`
    代码中将端口改成一个可用的端口号。
 
 3. 启动服务
 
    ```bash
-   cd src && python app.py
+   cd ems-sdk && python app.py
    ```
 
 ### 网络爬虫SDK
@@ -76,13 +76,13 @@ sudo docker-compose up -d
 > [!Tip]
 >
 > 湘潭大学教务系统是由[强智科技](https://www.qzdatasoft.com/)公司开发的大学教务系统，其业务逻辑部分大体相同，如果你想为其他学校的校务系统进行开发，你需要更改
-`src/xtu_ems/ems/config.py`中的文件。
+`ems-sdk/xtu_ems/ems/config.py`中的文件。
 >
 > 如果你在使用的过程中发现了问题，欢迎通过 [Issues](https://github.com/sky31studio/GongGong/issues) 向我们反映。
 
 #### 下载安装
 
-网络爬虫部分代码在 `src/xtu_ems` 目录下。我们采用SDK的方式来允许其他人在本项目的基础上进行二次开发。您可以在releases中下载对应版本的SDK并安装。
+网络爬虫部分代码在 `ems-sdk/xtu_ems` 目录下。我们采用SDK的方式来允许其他人在本项目的基础上进行二次开发。您可以在releases中下载对应版本的SDK并安装。
 
 ```shell
 pip install ./xtu_ems-**.whl
@@ -94,7 +94,7 @@ pip install ./xtu_ems-**.whl
 git clone https://github.com/sky31studio/GongGong.git
 ```
 
-然后将src设置为源码根目录（**PyCharm**）,或者在**PYTHONPATH**中添加该目录。
+然后将ems-sdk设置为源码根目录（**PyCharm**）,或者在**PYTHONPATH**中添加该目录。
 
 #### 如何使用
 

@@ -252,7 +252,7 @@ class QZEducationalManageSystem(EducationalManageSystem):
             resp = await ems_session.get(url=XTUEMSConfig.XTU_EMS_CAPTCHA_URL,
                                          timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT)
             session_id = resp.cookies.get(QZEducationalManageSystem.SESSION_NAME).value
-            session = Session(session_id=session_id)
+            session = Session(token=session_id)
             captcha = self.captcha.verify(await resp.read())
             resp = await ems_session.post(url=XTUEMSConfig.XTU_EMS_SIG_URL,
                                           timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT)
@@ -288,7 +288,7 @@ class QZEducationalManageSystem(EducationalManageSystem):
             resp = ems_session.get(url=XTUEMSConfig.XTU_EMS_CAPTCHA_URL,
                                    timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT)
             session_id = resp.cookies.get(QZEducationalManageSystem.SESSION_NAME)
-            session = Session(session_id=session_id)
+            session = Session(token=session_id)
             captcha = self.captcha.verify(resp.content)
             resp = ems_session.post(url=XTUEMSConfig.XTU_EMS_SIG_URL,
                                     timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT)

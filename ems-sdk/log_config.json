@@ -38,14 +38,6 @@
       "filename": "../logs/crawler.log",
       "when": "midnight",
       "backupCount": 60
-    },
-    "file_tasks": {
-      "class": "logging.handlers.TimedRotatingFileHandler",
-      "formatter": "standard",
-      "level": "DEBUG",
-      "filename": "../logs/tasks.log",
-      "when": "midnight",
-      "backupCount": 60
     }
   },
   "loggers": {
@@ -61,14 +53,6 @@
       "handlers": [
         "console",
         "file_crawler"
-      ],
-      "level": "DEBUG",
-      "propagate": false
-    },
-    "task": {
-      "handlers": [
-        "console",
-        "file_tasks"
       ],
       "level": "DEBUG",
       "propagate": false
