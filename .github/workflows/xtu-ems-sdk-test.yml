@@ -1,6 +1,12 @@
 name: Xtu EMS SDK test
 
-on: [ push, fork, pull_request ]
+on:
+  push:
+    paths:
+      - sdk-tests/**
+      - ems-sdk/**
+      - requirements.txt
+      - requirements.ems.txt
 
 jobs:
   build:

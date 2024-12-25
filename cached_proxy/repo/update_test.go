@@ -7,8 +7,8 @@ import (
 	"testing"
 )
 
-// 测试 HttpUpdater 中的 send 方法
-func TestHttpUpdaterSend(t *testing.T) {
+// 测试 HttpUpdater 中的 Send 方法
+func TestHttpUpdater_Send(t *testing.T) {
 	// 模拟的响应数据
 	expectedResponse := ResponseData{
 		Code: 0,
@@ -40,11 +40,11 @@ func TestHttpUpdaterSend(t *testing.T) {
 		client: http.Client{},
 	}
 
-	// 调用 send 方法
+	// 调用 Send 方法
 	headers := map[string]string{"token": "test-token"}
-	data, err := updater.send("GET", headers, nil)
+	data, err := updater.Send("GET", headers, nil)
 	if err != nil {
-		t.Fatalf("send 方法返回错误: %v", err)
+		t.Fatalf("Send 方法返回错误: %v", err)
 	}
 
 	// 验证响应结果

@@ -25,7 +25,7 @@ type HttpUpdater struct {
 	client http.Client
 }
 
-func (u *HttpUpdater) send(method string, headers map[string]string, data interface{}) (res interface{}, err error) {
+func (u *HttpUpdater) Send(method string, headers map[string]string, data interface{}) (res interface{}, err error) {
 	var body io.Reader = nil
 	if method == "POST" && data != nil {
 		// 将数据编码为 JSON 格式
@@ -82,7 +82,7 @@ func (h *HttpGetWithTokenUpdater[K, V]) Invoke(key string) (result V, err error)
 	}
 	// 发送请求
 	headers := map[string]string{"token": token}
-	data, err := h.send("GET", headers, nil)
+	data, err := h.Send("GET", headers, nil)
 	if err != nil {
 		return "", err
 	}
