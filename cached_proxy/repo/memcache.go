@@ -13,7 +13,7 @@ type cacheItem[V any] struct {
 }
 
 // NewMemCache 创建并初始化一个新的缓存实例
-func NewMemCache[K string, V any](valid ItemValidator[V], updater Updater[V], repo KVRepo[K, cacheItem[V]], executor exec.Executor) *MemCache[K, V] {
+func NewMemCache[K string, V any](valid ItemValidator[V], updater Updater[K, V], repo KVRepo[K, cacheItem[V]], executor exec.Executor) *MemCache[K, V] {
 	if repo == nil {
 		repo = NewMemRepo[K, cacheItem[V]]()
 	}
@@ -29,7 +29,7 @@ func NewMemCache[K string, V any](valid ItemValidator[V], updater Updater[V], re
 type MemCache[K string, V any] struct {
 	items         KVRepo[K, cacheItem[V]] // 缓存项的存储映射
 	valid         ItemValidator[V]        // 缓存有效性校验器
-	updater       Updater[V]              // 缓存更新器
+	updater       Updater[K, V]           // 缓存更新器
 	executor      exec.Executor           // 执行器
 	onUpdateError ErrorHandler            // 更新错误处理器
 }

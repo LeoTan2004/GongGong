@@ -15,11 +15,11 @@ func (m *mockValidator[V]) Valid(cacheItem[V]) bool {
 }
 
 // Mock Updater
-type mockUpdater[V any] struct {
+type mockUpdater[K, V any] struct {
 	data V
 }
 
-func (u *mockUpdater[V]) Invoke(...interface{}) (V, error) {
+func (u *mockUpdater[K, V]) Invoke(K) (V, error) {
 	return u.data, nil
 }
 
@@ -47,7 +47,7 @@ func (r *MockRepo[K, V]) Set(key K, value V) {
 func TestMemCache_Get(t *testing.T) {
 	repo := NewMockRepo[string, cacheItem[string]]()
 	validator := &mockValidator[string]{}
-	updater := &mockUpdater[string]{data: "updated value"}
+	updater := &mockUpdater[string, string]{data: "updated value"}
 	executor := exec.NewWorkerPool(4)
 	executor.Run()
 	cache := NewMemCache(validator, updater, repo, executor)
@@ -73,7 +73,7 @@ func TestMemCache_Get(t *testing.T) {
 func TestMemCache_Set(t *testing.T) {
 	repo := NewMockRepo[string, cacheItem[string]]()
 	validator := &mockValidator[string]{}
-	updater := &mockUpdater[string]{data: "updated value"}
+	updater := &mockUpdater[string, string]{data: "updated value"}
 	executor := exec.NewWorkerPool(4)
 	cache := NewMemCache(validator, updater, repo, executor)
 
