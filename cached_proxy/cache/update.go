@@ -1,7 +1,8 @@
-package repo
+package cache
 
 import (
 	"bytes"
+	"cached_proxy/repo"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -70,7 +71,7 @@ func (u *HttpUpdater) Send(method string, headers map[string]string, data interf
 
 type HttpGetWithTokenUpdater[K string, V string] struct {
 	HttpUpdater
-	tokenRepo KVRepo[string, string] // token存储器
+	tokenRepo repo.KVRepo[string, string] // token存储器
 }
 
 func (h *HttpGetWithTokenUpdater[K, V]) Invoke(key string) (result V, err error) {

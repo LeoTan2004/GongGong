@@ -1,7 +1,7 @@
-package repo
+package cache
 
 import (
-	exec "cached_proxy/executor"
+	"cached_proxy/executor"
 	"testing"
 	"time"
 )
@@ -44,13 +44,13 @@ func (r *MockRepo[K, V]) Set(key K, value V) {
 }
 
 // Test for Get
-func TestMemCache_Get(t *testing.T) {
+func TestCache_Get(t *testing.T) {
 	repo := NewMockRepo[string, cacheItem[string]]()
 	validator := &mockValidator[string]{}
 	updater := &mockUpdater[string, string]{data: "updated value"}
-	executor := exec.NewWorkerPool(4)
-	executor.Run()
-	cache := NewMemCache(validator, updater, repo, executor)
+	exec := executor.NewWorkerPool(4)
+	exec.Run()
+	cache := NewReadOnlyCache(validator, updater, repo, exec)
 
 	// Set an initial value in the cache
 	cache.Set("key1", "initial value")
@@ -70,12 +70,12 @@ func TestMemCache_Get(t *testing.T) {
 }
 
 // Test for Set
-func TestMemCache_Set(t *testing.T) {
+func TestCache_Set(t *testing.T) {
 	repo := NewMockRepo[string, cacheItem[string]]()
 	validator := &mockValidator[string]{}
 	updater := &mockUpdater[string, string]{data: "updated value"}
-	executor := exec.NewWorkerPool(4)
-	cache := NewMemCache(validator, updater, repo, executor)
+	exec := executor.NewWorkerPool(4)
+	cache := NewReadOnlyCache(validator, updater, repo, exec)
 
 	// Add a new value
 	cache.Set("key1", "test value")

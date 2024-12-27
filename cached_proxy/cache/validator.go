@@ -1,4 +1,4 @@
-package repo
+package cache
 
 // ItemValidator  缓存校验器
 type ItemValidator[V any] interface {

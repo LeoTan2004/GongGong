@@ -1,7 +1,9 @@
-package repo
+package cache
 
 import (
-	exec "cached_proxy/executor"
+	"cached_proxy/err_handler"
+	"cached_proxy/executor"
+	"cached_proxy/repo"
 	"time"
 )
 
@@ -12,12 +14,9 @@ type cacheItem[V any] struct {
 	submitAt time.Time // 提交更新时间
 }
 
-// NewMemCache 创建并初始化一个新的缓存实例
-func NewMemCache[K string, V any](valid ItemValidator[V], updater Updater[K, V], repo KVRepo[K, cacheItem[V]], executor exec.Executor) *MemCache[K, V] {
-	if repo == nil {
-		repo = NewMemRepo[K, cacheItem[V]]()
-	}
-	return &MemCache[K, V]{
+// NewReadOnlyCache 创建并初始化一个新的缓存实例
+func NewReadOnlyCache[K string, V any](valid ItemValidator[V], updater Updater[K, V], repo repo.KVRepo[K, cacheItem[V]], executor executor.Executor) *ReadOnlyCache[K, V] {
+	return &ReadOnlyCache[K, V]{
 		items:    repo,    // 初始化缓存映射
 		valid:    valid,   // 校验器
 		updater:  updater, // 更新器
@@ -25,19 +24,19 @@ func NewMemCache[K string, V any](valid ItemValidator[V], updater Updater[K, V],
 	}
 }
 
-// MemCache 定义缓存结构
-type MemCache[K string, V any] struct {
-	items         KVRepo[K, cacheItem[V]] // 缓存项的存储映射
-	valid         ItemValidator[V]        // 缓存有效性校验器
-	updater       Updater[K, V]           // 缓存更新器
-	executor      exec.Executor           // 执行器
-	onUpdateError ErrorHandler            // 更新错误处理器
+// ReadOnlyCache 定义缓存结构
+type ReadOnlyCache[K string, V any] struct {
+	items         repo.KVRepo[K, cacheItem[V]] // 缓存项的存储映射
+	valid         ItemValidator[V]             // 缓存有效性校验器
+	updater       Updater[K, V]                // 缓存更新器
+	executor      executor.Executor            // 执行器
+	onUpdateError err_handler.ErrorHandler     // 更新错误处理器
 }
 
 // Get 获取指定键的缓存数据
 //
 // 返回值：数据、是否存在、是否过期
-func (c *MemCache[K, V]) Get(key K) (data V, found bool) {
+func (c *ReadOnlyCache[K, V]) Get(key K) (data V, found bool) {
 	item, found, needUpdate := c.getWithValid(key)
 	if !needUpdate {
 		// updateTask 更新任务
@@ -51,7 +50,7 @@ func (c *MemCache[K, V]) Get(key K) (data V, found bool) {
 // Set 将数据添加到缓存或更新现有数据
 //
 // 返回值：键、数据
-func (c *MemCache[K, V]) Set(key K, data V) {
+func (c *ReadOnlyCache[K, V]) Set(key K, data V) {
 	item, found := c.items.Get(key) // 在缓存中查找 key
 	if !found {
 		item = cacheItem[V]{
@@ -71,7 +70,7 @@ func (c *MemCache[K, V]) Set(key K, data V) {
 }
 
 // 获取更新任务，更新任务中会调用创建时给的更新器去更新。同时也会自动处理好时间记录等问题
-func (c *MemCache[string, V]) getUpdaterTask(key string) func() {
+func (c *ReadOnlyCache[string, V]) getUpdaterTask(key string) func() {
 	updateTask := func() {
 		result, err := c.updater.Invoke(key)
 		if err != nil {
@@ -84,7 +83,7 @@ func (c *MemCache[string, V]) getUpdaterTask(key string) func() {
 }
 
 // 获取数据并且检查有效性
-func (c *MemCache[string, V]) getWithValid(key string) (item cacheItem[V], found bool, needUpdate bool) {
+func (c *ReadOnlyCache[string, V]) getWithValid(key string) (item cacheItem[V], found bool, needUpdate bool) {
 	item, found = c.items.Get(key) // 在缓存中查找 key
 	if !found {
 		return cacheItem[V]{}, found, true
