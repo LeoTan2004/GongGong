@@ -88,5 +88,5 @@ func (c *ReadOnlyCache[string, V]) getWithValid(key string) (item cacheItem[V], 
 	if !found {
 		return cacheItem[V]{}, found, true
 	}
-	return item, found, c.valid.Valid(item)
+	return item, found, c.valid.Valid(&item)
 }

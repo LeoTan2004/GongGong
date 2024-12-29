@@ -9,7 +9,7 @@ import (
 // Mock ItemValidator
 type mockValidator[V any] struct{}
 
-func (m *mockValidator[V]) Valid(cacheItem[V]) bool {
+func (m *mockValidator[V]) Valid(*cacheItem[V]) bool {
 	// 简单实现：假设所有缓存项都有效
 	return false
 }
@@ -62,7 +62,7 @@ func TestCache_Get(t *testing.T) {
 	}
 
 	// Simulate expired value
-	time.Sleep(1 * time.Second) // Let the item become "stale"
+	time.Sleep(10 * time.Microsecond) // Let the item become "stale"
 	data, found = cache.Get("key1")
 	if !found || data != "updated value" {
 		t.Errorf("Get() failed, expected 'updated value', got '%v' (found: %v)", data, found)
