@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 )
 
@@ -224,4 +225,87 @@ func TestSpiderClient_Login(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSpiderClient_LoginWithTrueEnv(t *testing.T) {
+	tests := []struct {
+		name          string
+		username      string
+		password      string
+		expectedError bool
+	}{
+		{
+			name:     "Login success",
+			username: os.Getenv("XTU_USERNAME"),
+			password: os.Getenv("XTU_PASSWORD"),
+
+			expectedError: false,
+		},
+		{
+			name:          "Login failure - incorrect credentials",
+			username:      "invalid-user",
+			password:      "wrong-password",
+			expectedError: true,
+		},
+	}
+	baseUrl := "http://gong.leocoding.online"
+	token := ""
+	client := NewSpiderClientImpl(baseUrl, http.Client{})
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// 调用 Login 方法
+			response, err := client.Login(tt.username, tt.password)
+
+			// 验证结果
+			if (err != nil) != tt.expectedError {
+				t.Fatalf("Expected error: %v, got: %v", tt.expectedError, err)
+			}
+			if !tt.expectedError {
+				token = response.Token
+			}
+
+		})
+	}
+	runGetTestsWithTrueEnv(t, "GetTeachingCalendar", baseUrl, func() (any, error) {
+		return client.GetTeachingCalendar(token)
+	})
+	runGetTestsWithTrueEnv(t, "GetClassroomStatusToday", baseUrl, func() (any, error) {
+		return client.GetClassroomStatus(token, 0)
+	})
+	runGetTestsWithTrueEnv(t, "GetClassroomStatusTomorrow", baseUrl, func() (any, error) {
+		return client.GetClassroomStatus(token, 1)
+	})
+	runGetTestsWithTrueEnv(t, "GetStudentCourses", baseUrl, func() (any, error) {
+		return client.GetStudentCourses(token)
+	})
+	runGetTestsWithTrueEnv(t, "GetStudentExams", baseUrl, func() (any, error) {
+		return client.GetStudentExams(token)
+	})
+	runGetTestsWithTrueEnv(t, "GetStudentInfo", baseUrl, func() (any, error) {
+		return client.GetStudentInfo(token)
+	})
+	runGetTestsWithTrueEnv(t, "GetStudentScore", baseUrl, func() (any, error) {
+		return client.GetStudentScore(token, true)
+	})
+	runGetTestsWithTrueEnv(t, "GetStudentMinorScore", baseUrl, func() (any, error) {
+		return client.GetStudentScore(token, false)
+	})
+	runGetTestsWithTrueEnv(t, "GetStudentRank", baseUrl, func() (any, error) {
+		return client.GetStudentRank(token, false)
+	})
+
+}
+
+func runGetTestsWithTrueEnv(t *testing.T, name string, baseUrl string, methodToTest func() (any, error)) {
+	t.Run(name, func(t *testing.T) {
+		data, err := methodToTest()
+		if err != nil {
+			t.Fatalf("Failed to get data: %v", err)
+		}
+		bytes, err := json.Marshal(data)
+		if err != nil {
+			t.Fatalf("Failed to marshal data: %v", err)
+		}
+		t.Logf("Response from %s:\n %s", baseUrl, string(bytes))
+	})
 }

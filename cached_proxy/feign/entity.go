@@ -37,3 +37,57 @@ type ClassroomStatusTable struct {
 	Classrooms map[string][]ClassroomStatus `json:"classrooms"`
 	Date       string                       `json:"date"`
 }
+
+type ExamItem struct {
+	Name      string `json:"name"`
+	StartTime string `json:"start_time"`
+	EndTime   string `json:"end_time"`
+	Location  string `json:"location"`
+	Type      string `json:"type"`
+}
+
+type ExamList struct {
+	Exams []ExamItem `json:"exams"`
+}
+
+type StudentInfo struct {
+	StudentId   string `json:"student_id"`
+	Name        string `json:"name"`
+	Gender      string `json:"gender"`
+	Birthday    string `json:"birthday"`
+	Major       string `json:"major"`
+	Class       string `json:"class_"`
+	EntranceDay string `json:"entrance_day"`
+	College     string `json:"college"`
+}
+
+type RankBoard struct {
+	AverageScore string   `json:"average_score"`
+	Gpa          string   `json:"gpa"`
+	ClassRank    int      `json:"class_rank"`
+	MajorRank    int      `json:"major_rank"`
+	Terms        []string `json:"terms"`
+}
+
+type ScoreItem struct {
+	Name   string `json:"name"`
+	Score  string `json:"score"`
+	Credit string `json:"credit"`
+	Type   string `json:"type"`
+	Term   int    `json:"term"`
+}
+type ScoreBoard struct {
+	StudentId         string      `json:"student_id"`
+	Name              string      `json:"name"`
+	College           string      `json:"college"`
+	Major             string      `json:"major"`
+	Scores            []ScoreItem `json:"scores"`
+	TotalCredit       []any       `json:"total_credit"`
+	ElectiveCredit    []any       `json:"elective_credit"`
+	CompulsoryCredit  []any       `json:"compulsory_credit"`
+	CrossCourseCredit []any       `json:"cross_course_credit"`
+	AverageScore      string      `json:"average_score"`
+	Gpa               string      `json:"gpa"`
+	Cet4              string      `json:"cet4"`
+	Cet6              string      `json:"cet6"`
+}
