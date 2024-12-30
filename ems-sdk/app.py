@@ -4,6 +4,7 @@ from typing import Generic, TypeVar
 import requests.exceptions
 from fastapi import FastAPI, Body, Header
 from pydantic import BaseModel
+from starlette.responses import PlainTextResponse
 
 from xtu_ems.ems.account import AuthenticationAccount
 from xtu_ems.ems.ems import QZEducationalManageSystem, InvalidCaptchaException, InvalidAccountException, \
@@ -60,20 +61,33 @@ logger = logging.getLogger("api")
 class Resp(BaseModel, Generic[T]):
     """统一返回"""
     code: int = 0
-    msg: str = ""
+    message: str = ""
     data: T = None
 
     @staticmethod
     def success(msg: str = "success", data: T = None):
-        return Resp(code=1, msg=msg, data=data)
+        resp = Resp(code=1, message=msg, data=data)
+        return resp
 
     @staticmethod
-    def fail(msg: str = "failed"):
-        return Resp(code=0, msg=msg, data={})
+    def unauthorized(msg: str = "unauthorized"):
+        """账户密码错误，或者token失效"""
+        return PlainTextResponse(status_code=401, content=msg)
 
     @staticmethod
-    def error(msg: str = "error"):
-        return Resp(code=-1, msg=msg, data={})
+    def not_initialized(msg: str = "your account was not initialized"):
+        """账户登陆成功，但是可能未初始化，需要在教务系统中认证"""
+        return PlainTextResponse(status_code=409, content=msg)
+
+    @staticmethod
+    def ems_request_failed(msg: str = "something wrong"):
+        """教务系统请求失败或者验证码识别错误"""
+        return PlainTextResponse(status_code=503, content=msg)
+
+    @staticmethod
+    def error(msg: str = "something wrong"):
+        """未知错误"""
+        return PlainTextResponse(status_code=500, content=msg)
 
 
 @api.post("/login")
@@ -86,16 +100,16 @@ async def login(username: str = Body(description="学号"), password: str = Body
         return Resp.success(msg=f"{username}-登陆成功", data=session)
     except InvalidCaptchaException as captcha_exc:
         logger.warning(f"【{username}】登陆时验证码识别失败")
-        return Resp.fail(f"【{username}】登陆时验证码识别错误")
+        return Resp.ems_request_failed(f"【{username}】登陆时验证码识别错误")
     except InvalidAccountException as account_exc:
         logger.warning(f"【{username}】登陆失败，账户或者密码错误")
-        return Resp.fail(f"【{username}】登陆失败，账户或者密码错误")
+        return Resp.unauthorized(f"【{username}】登陆失败，账户或者密码错误")
     except UninitializedPasswordException as exc:
         logger.warning(f"【{username}】登陆失败，账户未初始化")
-        return Resp.fail(f"【{username}】登陆失败，需要先在教务系统中认证")
+        return Resp.not_initialized(f"【{username}】登陆失败，需要先在教务系统中认证")
     except requests.exceptions.Timeout as exc:
         logger.warning(f"【{username}】登陆时超时")
-        return Resp.error("远程连接错误")
+        return Resp.ems_request_failed("远程连接错误")
     except Exception as e:
         logger.exception(f"【{username}】登陆时错误")
         return Resp.error("未知错误")
@@ -106,10 +120,13 @@ async def _run_handler(handler: Handler, token: str):
     try:
         return Resp.success(data=await handler.async_handler(session))
     except requests.exceptions.Timeout as e:
-        logger.exception(f"【{handler.__name__}】执行时超时")
-        return Resp.error("远程连接错误")
+        logger.exception(f"【{handler.__class__.__name__}】执行时超时")
+        return Resp.ems_request_failed("远程连接错误")
+    except AttributeError as e:
+        logger.exception(f"【{handler.__class__.__name__}】执行时错误")
+        return Resp.unauthorized("用户凭证错误")
     except Exception as e:
-        logger.exception(f"【{handler.__name__}】执行时错误")
+        logger.exception(f"【{handler.__class__.__name__}】执行时错误")
         return Resp.error("未知错误")
 
 
