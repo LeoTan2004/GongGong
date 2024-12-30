@@ -144,17 +144,17 @@ class ScoreBoard(BaseModel):
 
     scores: list[Score] = field(default_factory=list)
     """成绩列表"""
-    total_credit: Tuple[str, str] = (0, 0)
+    total_credit: Tuple[str, str] = ('0', '0')
     """总学分"""
-    elective_credit: Tuple[str, str] = (0, 0)
+    elective_credit: Tuple[str, str] = ('0', '0')
     """选修课学分"""
-    compulsory_credit: Tuple[str, str] = (0, 0)
+    compulsory_credit: Tuple[str, str] = ('0', '0')
     """必修课学分"""
-    cross_course_credit: Tuple[str, str] = (0, 0)
+    cross_course_credit: Tuple[str, str] = ('0', '0')
     """跨学科选修学分"""
-    average_score: str = 0
+    average_score: str = '0'
     """平均分"""
-    gpa: str = 0
+    gpa: str = '0'
     """总绩点"""
 
     cet4: str = None
@@ -233,6 +233,7 @@ class ClassroomBoard(BaseModel):
                 if classroom.name.startswith(prefix):
                     ret.classrooms.setdefault(classroom_prefix_category[prefix], []).append(classroom)
                     # 将教室名称中的前缀去除
+                    classroom.name = classroom.name[len(prefix):]
                     classroom.name = classroom.name[len(prefix):]
                     break
             else:
