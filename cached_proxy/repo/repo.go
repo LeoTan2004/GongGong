@@ -2,7 +2,7 @@ package repo
 
 // KVRepo 键值对存储接口
 type KVRepo[K string, V any] interface {
-	Get(key K) (V, bool)
+	Get(key K) (value V, found bool)
 	Set(key K, data V)
 }
 
@@ -14,7 +14,7 @@ func NewMemRepo[K string, V any]() *MemRepo[K, V] {
 	return &MemRepo[K, V]{}
 }
 
-func (m *MemRepo[K, V]) Get(key K) (V, bool) {
+func (m *MemRepo[K, V]) Get(key K) (value V, found bool) {
 	item, found := m.items[key]
 	return item, found
 }

@@ -17,10 +17,10 @@ type cacheItem[V any] struct {
 // NewReadOnlyCache 创建并初始化一个新的缓存实例
 func NewReadOnlyCache[K string, V any](valid ItemValidator[V], updater Updater[K, V], repo repo.KVRepo[K, cacheItem[V]], executor executor.Executor) *ReadOnlyCache[K, V] {
 	return &ReadOnlyCache[K, V]{
-		items:    repo,    // 初始化缓存映射
-		valid:    valid,   // 校验器
-		updater:  updater, // 更新器
-		executor: executor,
+		items:    repo,     // 初始化缓存映射
+		valid:    valid,    // 校验器
+		updater:  updater,  // 更新器
+		executor: executor, // 执行器
 	}
 }
 
@@ -35,16 +35,16 @@ type ReadOnlyCache[K string, V any] struct {
 
 // Get 获取指定键的缓存数据
 //
-// 返回值：数据、是否存在、是否过期
-func (c *ReadOnlyCache[K, V]) Get(key K) (data V, found bool) {
-	item, found, needUpdate := c.getWithValid(key)
+// 返回值：数据、是否最新、是否过期
+func (c *ReadOnlyCache[K, V]) Get(key K) (value V, valid bool) {
+	item, _, needUpdate := c.getWithValid(key)
 	if !needUpdate {
 		// updateTask 更新任务
 		item.submitAt = time.Now()
 		updateTask := c.getUpdaterTask(key)
 		c.executor.Submit(updateTask)
 	}
-	return item.data, found
+	return item.data, !needUpdate
 }
 
 // Set 将数据添加到缓存或更新现有数据

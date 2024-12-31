@@ -56,16 +56,16 @@ func TestCache_Get(t *testing.T) {
 	cache.Set("key1", "initial value")
 
 	// Test retrieving the value
-	data, found := cache.Get("key1")
-	if !found || data != "initial value" {
-		t.Errorf("Get() failed, expected 'initial value', got '%v' (found: %v)", data, found)
+	data, valid := cache.Get("key1")
+	if !valid || data != "initial value" {
+		t.Errorf("Get() failed, expected 'initial value', got '%v' (valid: %v)", data, valid)
 	}
 
 	// Simulate expired value
 	time.Sleep(10 * time.Microsecond) // Let the item become "stale"
-	data, found = cache.Get("key1")
-	if !found || data != "updated value" {
-		t.Errorf("Get() failed, expected 'updated value', got '%v' (found: %v)", data, found)
+	data, valid = cache.Get("key1")
+	if !valid || data != "updated value" {
+		t.Errorf("Get() failed, expected 'updated value', got '%v' (valid: %v)", data, valid)
 	}
 }
 
@@ -81,8 +81,8 @@ func TestCache_Set(t *testing.T) {
 	cache.Set("key1", "test value")
 
 	// Verify the value is stored correctly
-	item, found := repo.Get("key1")
-	if !found || item.data != "test value" {
-		t.Errorf("Set() failed, expected 'test value', got '%v' (found: %v)", item.data, found)
+	item, valid := repo.Get("key1")
+	if !valid || item.data != "test value" {
+		t.Errorf("Set() failed, expected 'test value', got '%v' (valid: %v)", item.data, valid)
 	}
 }
