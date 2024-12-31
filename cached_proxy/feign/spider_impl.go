@@ -78,6 +78,7 @@ func (c *SpiderClientImpl) sendRequest(r *http.Request) (*http.Response, error) 
 	// 检查响应状态码
 	if response.StatusCode != http.StatusOK {
 		log.Printf("异常返回: method=%s, url=%s, status=%d", r.Method, r.URL, response.StatusCode)
+		return nil, fmt.Errorf("异常返回: %d", response.StatusCode)
 	}
 
 	return response, nil
@@ -100,23 +101,26 @@ func (c *SpiderClientImpl) decodeResponse(response *http.Response) (CommonRespon
 }
 
 // getWithToken 发送头部携带token的get请求
-func (c *SpiderClientImpl) getWithToken(uri string, token string) (CommonResponse[any], error) {
+func (c *SpiderClientImpl) getWithToken(uri string, token string) (*CommonResponse[any], error) {
+	// 构建请求
 	request, err := c.buildRequest("GET", uri, token, nil)
 	if err != nil {
-		return CommonResponse[any]{}, err
+		return nil, err
 	}
+	// 发送请求
 	response, err := c.sendRequest(request)
 	if err != nil {
-		return CommonResponse[any]{}, err
+		return nil, err
 	}
+	// 解析返回
 	commonResponse, err := c.decodeResponse(response)
 	if err != nil {
-		return CommonResponse[any]{}, err
+		return nil, err
 	}
 	if commonResponse.Code != 1 {
-		return CommonResponse[any]{}, fmt.Errorf("返回错误：%d，返回信息：%s", commonResponse.Code, commonResponse.Message)
+		return nil, fmt.Errorf("返回错误：%d，返回信息：%s", commonResponse.Code, commonResponse.Message)
 	}
-	return commonResponse, nil
+	return &commonResponse, nil
 }
 
 func (c *SpiderClientImpl) GetTeachingCalendar(token string) (any, error) {
@@ -129,7 +133,7 @@ func (c *SpiderClientImpl) GetTeachingCalendar(token string) (any, error) {
 
 func (c *SpiderClientImpl) GetClassroomStatus(token string, day int) (any, error) {
 
-	var commonResponse CommonResponse[any]
+	var commonResponse *CommonResponse[any]
 	var err error
 	if day == 0 {
 		commonResponse, err = c.getWithToken("/classroom/today", token)
@@ -198,7 +202,7 @@ func (c *SpiderClientImpl) Login(username string, password string) (LoginRespons
 }
 
 func (c *SpiderClientImpl) GetStudentScore(token string, isMajor bool) (any, error) {
-	var commonResponse CommonResponse[any]
+	var commonResponse *CommonResponse[any]
 	var err error
 	if isMajor {
 		commonResponse, err = c.getWithToken("/scores", token)
@@ -212,7 +216,7 @@ func (c *SpiderClientImpl) GetStudentScore(token string, isMajor bool) (any, err
 }
 
 func (c *SpiderClientImpl) GetStudentRank(token string, onlyRequired bool) (any, error) {
-	var commonResponse CommonResponse[any]
+	var commonResponse *CommonResponse[any]
 	var err error
 	if onlyRequired {
 		// TODO(2024年12月28日 11:04 , LeoTan) 添加仅仅必修课程的排名计算的接口
