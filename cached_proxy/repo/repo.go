@@ -11,7 +11,9 @@ type MemRepo[K string, V any] struct {
 }
 
 func NewMemRepo[K string, V any]() *MemRepo[K, V] {
-	return &MemRepo[K, V]{}
+	return &MemRepo[K, V]{
+		items: make(map[K]V),
+	}
 }
 
 func (m *MemRepo[K, V]) Get(key K) (value V, found bool) {

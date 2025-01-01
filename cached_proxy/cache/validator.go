@@ -24,3 +24,11 @@ func (d *DefaultItemValidator[V]) Valid(item *cacheItem[V]) bool {
 	}
 
 }
+
+// NewDefaultItemValidator 创建默认缓存校验器
+func NewDefaultItemValidator[V any](updateExpireAt, submitExpireAt time.Duration) *DefaultItemValidator[V] {
+	return &DefaultItemValidator[V]{
+		updateExpireAt: updateExpireAt,
+		submitExpireAt: submitExpireAt,
+	}
+}

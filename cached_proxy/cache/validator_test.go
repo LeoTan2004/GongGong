@@ -25,10 +25,7 @@ func TestDefaultItemValidator_Valid(t *testing.T) {
 			expected: true,
 		},
 	}
-	validator := &DefaultItemValidator[string]{
-		updateExpireAt: 2 * time.Second,
-		submitExpireAt: 3 * time.Second,
-	}
+	validator := NewDefaultItemValidator[string](2*time.Second, 3*time.Second)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 

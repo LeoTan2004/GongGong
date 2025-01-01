@@ -28,12 +28,6 @@ type MockRepo[K comparable, V any] struct {
 	items map[K]V
 }
 
-func NewMockRepo[K comparable, V any]() *MockRepo[K, V] {
-	return &MockRepo[K, V]{
-		items: make(map[K]V),
-	}
-}
-
 func (r *MockRepo[K, V]) Get(key K) (V, bool) {
 	val, ok := r.items[key]
 	return val, ok
@@ -45,12 +39,11 @@ func (r *MockRepo[K, V]) Set(key K, value V) {
 
 // Test for Get
 func TestCache_Get(t *testing.T) {
-	repo := NewMockRepo[string, cacheItem[string]]()
 	validator := &mockValidator[string]{}
 	updater := &mockUpdater[string, string]{data: "updated value"}
 	exec := executor.NewWorkerPool(4)
 	exec.Run()
-	cache := NewReadOnlyCache(validator, updater, repo, exec)
+	cache := NewReadOnlyCache(validator, updater, exec)
 
 	// Set an initial value in the cache
 	cache.Set("key1", "initial value")
@@ -71,11 +64,11 @@ func TestCache_Get(t *testing.T) {
 
 // Test for Set
 func TestCache_Set(t *testing.T) {
-	repo := NewMockRepo[string, cacheItem[string]]()
 	validator := &mockValidator[string]{}
 	updater := &mockUpdater[string, string]{data: "updated value"}
 	exec := executor.NewWorkerPool(4)
-	cache := NewReadOnlyCache(validator, updater, repo, exec)
+	cache := NewReadOnlyCache(validator, updater, exec)
+	repo := cache.items
 
 	// Add a new value
 	cache.Set("key1", "test value")

@@ -15,19 +15,19 @@ type cacheItem[V any] struct {
 }
 
 // NewReadOnlyCache 创建并初始化一个新的缓存实例
-func NewReadOnlyCache[K string, V any](valid ItemValidator[V], updater Updater[K, V], repo repo.KVRepo[K, cacheItem[V]], executor executor.Executor) *ReadOnlyCache[K, V] {
+func NewReadOnlyCache[K string, V any](validator ItemValidator[V], updater Updater[K, V], executor executor.Executor) *ReadOnlyCache[K, V] {
 	return &ReadOnlyCache[K, V]{
-		items:    repo,     // 初始化缓存映射
-		valid:    valid,    // 校验器
-		updater:  updater,  // 更新器
-		executor: executor, // 执行器
+		items:     repo.NewMemRepo[K, cacheItem[V]](), // 初始化缓存映射
+		validator: validator,                          // 校验器
+		updater:   updater,                            // 更新器
+		executor:  executor,                           // 执行器
 	}
 }
 
 // ReadOnlyCache 定义缓存结构
 type ReadOnlyCache[K string, V any] struct {
 	items         repo.KVRepo[K, cacheItem[V]] // 缓存项的存储映射
-	valid         ItemValidator[V]             // 缓存有效性校验器
+	validator     ItemValidator[V]             // 缓存有效性校验器
 	updater       Updater[K, V]                // 缓存更新器
 	executor      executor.Executor            // 执行器
 	onUpdateError err_handler.ErrorHandler     // 更新错误处理器
@@ -88,5 +88,5 @@ func (c *ReadOnlyCache[string, V]) getWithValid(key string) (item cacheItem[V], 
 	if !found {
 		return cacheItem[V]{}, found, true
 	}
-	return item, found, c.valid.Valid(&item)
+	return item, found, c.validator.Valid(&item)
 }
