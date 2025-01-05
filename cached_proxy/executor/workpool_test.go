@@ -3,7 +3,6 @@ package executor
 import (
 	"sync/atomic"
 	"testing"
-	"time"
 )
 
 // 测试线程池基本运行情况
@@ -24,7 +23,6 @@ func TestWorkerPool(t *testing.T) {
 	for i := 0; i < taskCount; i++ {
 		wp.Submit(func() {
 			atomic.AddInt32(&executedTaskCount, 1) // 原子增加任务计数
-			time.Sleep(10 * time.Millisecond)      // 模拟任务执行时间
 		})
 	}
 
@@ -54,7 +52,6 @@ func TestWorkerPoolRunMultipleTimes(t *testing.T) {
 	for i := 0; i < taskCount; i++ {
 		wp.Submit(func() {
 			atomic.AddInt32(&executedTaskCount, 1)
-			time.Sleep(5 * time.Millisecond) // 模拟任务执行时间
 		})
 	}
 
