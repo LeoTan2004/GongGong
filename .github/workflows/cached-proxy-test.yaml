@@ -1,0 +1,41 @@
+name: Go CI
+
+on:
+  push:
+    paths:
+      - .github/workflows/cached-proxy-test.yaml
+      - cached_proxy/**
+
+jobs:
+  tests:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.21', '1.22', '1.23' ]
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Go ${{ matrix.go-version }}
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Test with the Go CLI
+        working-directory: cached_proxy
+        run: go test -v ./...
+
+        # 运行测试并生成覆盖率报告
+      - name: Run tests and generate coverage report
+        working-directory: cached_proxy
+        run: |
+          mkdir -p reports
+          go test -coverprofile=reports/coverage-${{ matrix.go-version }}.out ./...
+          go tool cover -html=reports/coverage-${{ matrix.go-version }}.out -o reports/coverage.html
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          compression-level: 0
+          name: coverage-report-${{ matrix.go-version }}
+          path: cached_proxy/reports/
+        if: ${{ always() }}

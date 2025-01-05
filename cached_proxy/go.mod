@@ -1,3 +1,3 @@
 module cached_proxy
 
-go 1.23
+go 1.21

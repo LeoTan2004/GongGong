@@ -3,6 +3,7 @@ name: Xtu EMS SDK test
 on:
   push:
     paths:
+      - .github/workflows/xtu-ems-sdk-test.yml
       - sdk-tests/**
       - ems-sdk/**
       - requirements.txt
