@@ -76,12 +76,23 @@ func (c *SpiderClientImpl) sendRequest(r *http.Request) (*http.Response, error) 
 	}
 
 	// 检查响应状态码
-	if response.StatusCode != http.StatusOK {
-		log.Printf("异常返回: method=%s, url=%s, status=%d", r.Method, r.URL, response.StatusCode)
-		return nil, fmt.Errorf("异常返回: %d", response.StatusCode)
+	switch response.StatusCode {
+	case http.StatusOK:
+		// 正常返回
+		return response, nil
+	case http.StatusUnauthorized:
+		// 未授权
+		log.Printf("Unauthorized: method=%s, url=%s", r.Method, r.URL)
+		return nil, fmt.Errorf("unauthorized")
+	case http.StatusServiceUnavailable:
+		// 服务不可用
+		log.Printf("ServiceUnavailable: method=%s, url=%s", r.Method, r.URL)
+		return nil, fmt.Errorf("service unavailable")
+	default:
+		// 其他错误
+		log.Printf("Unkown Error: method=%s, url=%s, status=%d", r.Method, r.URL, response.StatusCode)
+		return nil, fmt.Errorf("unkown error: status=%d", response.StatusCode)
 	}
-
-	return response, nil
 }
 
 // decodeResponse 解码统一返回
