@@ -143,16 +143,8 @@ func (c *SpiderClientImpl) GetTeachingCalendar(token string) (any, error) {
 }
 
 func (c *SpiderClientImpl) GetClassroomStatus(token string, day int) (any, error) {
-
-	var commonResponse *CommonResponse[any]
-	var err error
-	if day == 0 {
-		commonResponse, err = c.getWithToken("/classroom/today", token)
-	} else if day == 1 {
-		commonResponse, err = c.getWithToken("/classroom/tomorrow", token)
-	} else {
-		return nil, fmt.Errorf("day只能为0或1")
-	}
+	uri := fmt.Sprintf("/classroom/%d", day)
+	commonResponse, err := c.getWithToken(uri, token)
 	if err != nil {
 		return nil, err
 	}
@@ -230,9 +222,7 @@ func (c *SpiderClientImpl) GetStudentRank(token string, onlyRequired bool) (any,
 	var commonResponse *CommonResponse[any]
 	var err error
 	if onlyRequired {
-		// TODO(2024年12月28日 11:04 , LeoTan) 添加仅仅必修课程的排名计算的接口
-		return nil, fmt.Errorf("onlyRequired is not supported")
-		//commonResponse, err = c.getWithToken("/rank", token)
+		commonResponse, err = c.getWithToken("/compulsory/rank", token)
 	} else {
 		commonResponse, err = c.getWithToken("/rank", token)
 	}
@@ -244,7 +234,7 @@ func (c *SpiderClientImpl) GetStudentRank(token string, onlyRequired bool) (any,
 
 func NewSpiderClientImpl(baseUrl string, client http.Client) *SpiderClientImpl {
 	if client.Timeout == 0 {
-		client.Timeout = 5 * time.Second
+		client.Timeout = 15 * time.Second
 	}
 	return &SpiderClientImpl{baseUrl: baseUrl, client: client}
 }
