@@ -170,3 +170,217 @@ func TestSpiderClient_getWithToken(t *testing.T) {
 		})
 	}
 }
+
+func TestSpiderClientImplIntegrate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// login request
+		if r.Method == "POST" && r.URL.Path == "/login" {
+			var actualBody map[string]string
+			if err := json.NewDecoder(r.Body).Decode(&actualBody); err != nil {
+				t.Fatalf("Failed to decode request body: %v", err)
+			}
+			if actualBody["username"] != "valid-user" || actualBody["password"] != "valid-password" {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{
+				"code": 1,
+				"message": "success",
+				"data": {
+					"token": "valid-token"
+				}
+			}`))
+			return
+		}
+		// get request
+		if r.Method != "GET" {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		token := r.Header.Get("token")
+		if token != "valid-token" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{
+			"code": 1,
+			"message": "success",
+			"data": {
+				"data": "valid-data"
+			}
+		}`))
+	}))
+	defer server.Close()
+
+	validUsername := "valid-user"
+	validPassword := "valid-password"
+	validToken := "valid-token"
+	baseUrl := server.URL
+	client := NewSpiderClientImpl(baseUrl, http.Client{})
+	t.Run("Integrate Test Login With Valid Username and password", func(t *testing.T) {
+		login, err := client.Login(validUsername, validPassword)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		validToken = login.Token
+	})
+	login, err := client.Login(validUsername, validPassword)
+	if err != nil {
+		t.Fatalf("Expected error: %v, got: %v", nil, err)
+	}
+	validToken = login.Token
+
+	t.Run("Integrate Test Login With Invalid Username and password", func(t *testing.T) {
+		_, err := client.Login("invalid-user", "invalid-password")
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+	})
+
+	t.Run("Integrate Test GetClassroomStatus With Valid Token", func(t *testing.T) {
+		resp, err := client.GetClassroomStatus(validToken, 0)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+		resp, err = client.GetClassroomStatus(validToken, 1)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+	})
+
+	t.Run("Integrate Test GetClassroomStatus With Invalid Token", func(t *testing.T) {
+		_, err := client.GetClassroomStatus("invalid-token", 0)
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+		_, err = client.GetClassroomStatus("invalid-token", 1)
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentInfo With Valid Token", func(t *testing.T) {
+		resp, err := client.GetStudentInfo(validToken)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentInfo With Invalid Token", func(t *testing.T) {
+		_, err := client.GetStudentInfo("invalid-token")
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentCourses With Valid Token", func(t *testing.T) {
+		resp, err := client.GetStudentCourses(validToken)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentCourses With Invalid Token", func(t *testing.T) {
+		_, err := client.GetStudentCourses("invalid-token")
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentExams With Valid Token", func(t *testing.T) {
+		resp, err := client.GetStudentExams(validToken)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentExams With Invalid Token", func(t *testing.T) {
+		_, err := client.GetStudentExams("invalid-token")
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+	})
+
+	t.Run("Integrate Test GetTeachingCalendar With Valid Token", func(t *testing.T) {
+		resp, err := client.GetTeachingCalendar(validToken)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+	})
+
+	t.Run("Integrate Test GetTeachingCalendar With Invalid Token", func(t *testing.T) {
+		_, err := client.GetTeachingCalendar("invalid-token")
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentRank With Valid Token", func(t *testing.T) {
+		resp, err := client.GetStudentRank(validToken, false)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+		resp, err = client.GetStudentRank(validToken, true)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+
+	})
+
+	t.Run("Integrate Test GetStudentRank With Invalid Token", func(t *testing.T) {
+		_, err := client.GetStudentRank("invalid-token", false)
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+		_, err = client.GetStudentRank("invalid-token", true)
+		if err == nil || err.Error() != "unauthorized" {
+			t.Fatalf("Expected error: %v, got: %v", "unauthorized", err)
+		}
+	})
+
+	t.Run("Integrate Test GetStudentScore With Valid Token", func(t *testing.T) {
+		resp, err := client.GetStudentScore(validToken, false)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+		resp, err = client.GetStudentScore(validToken, true)
+		if err != nil {
+			t.Fatalf("Expected error: %v, got: %v", nil, err)
+		}
+		if resp == "" {
+			t.Fatalf("Expected data is not nil, but got: %v", resp)
+		}
+
+	})
+
+}

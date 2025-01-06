@@ -1,11 +1,10 @@
 import logging
-from typing import Generic, TypeVar
-
 import requests.exceptions
 from fastapi import FastAPI, Body, Header
 from fastapi.params import Path
 from pydantic import BaseModel
 from starlette.responses import PlainTextResponse
+from typing import Generic, TypeVar
 
 from xtu_ems.ems.account import AuthenticationAccount
 from xtu_ems.ems.ems import QZEducationalManageSystem, InvalidCaptchaException, InvalidAccountException, \
@@ -125,6 +124,9 @@ async def _run_handler(handler: Handler, token: str):
         logger.exception(f"【{handler.__class__.__name__}】执行时超时")
         return Resp.ems_request_failed("远程连接错误")
     except AttributeError as e:
+        logger.exception(f"【{handler.__class__.__name__}】执行时错误")
+        return Resp.unauthorized("用户凭证错误")
+    except IndexError as e:
         logger.exception(f"【{handler.__class__.__name__}】执行时错误")
         return Resp.unauthorized("用户凭证错误")
     except Exception as e:

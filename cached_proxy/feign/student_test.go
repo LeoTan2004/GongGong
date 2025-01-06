@@ -1,8 +1,11 @@
 package feign
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"regexp"
 	"testing"
 )
@@ -244,4 +247,387 @@ func TestNewStudentImpl(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestStudentImplIntegrate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// login request
+		if r.Method == "POST" && r.URL.Path == "/login" {
+			var actualBody map[string]string
+			if err := json.NewDecoder(r.Body).Decode(&actualBody); err != nil {
+				t.Fatalf("Failed to decode request body: %v", err)
+			}
+			if actualBody["username"] != "valid-user" || actualBody["password"] != "valid-password" {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{
+				"code": 1,
+				"message": "success",
+				"data": {
+					"token": "valid-token"
+				}
+			}`))
+			return
+		}
+		// get request
+		if r.Method != "GET" {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+			return
+		}
+		token := r.Header.Get("token")
+		if token != "valid-token" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{
+			"code": 1,
+			"message": "success",
+			"data": {
+				"data": "valid-data"
+			}
+		}`))
+	}))
+	defer server.Close()
+
+	validUsername := "valid-user"
+	validPassword := "valid-password"
+	baseUrl := server.URL
+	client := NewSpiderClientImpl(baseUrl, http.Client{})
+	var student Student
+	var err error
+	var data any
+	// Test NewStudentImpl
+	t.Run("NewStudentImpl success with valid username and password", func(t *testing.T) {
+		student, err = NewStudentImpl(validUsername, validPassword, client)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+	})
+
+	t.Run("NewStudentImpl failure with invalid username and password", func(t *testing.T) {
+		_, err = NewStudentImpl("invalid-username", "invalid-password", client)
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
+
+	// Test GetTeachingCalendar
+	t.Run("GetTeachingCalendar success", func(t *testing.T) {
+		data, err = student.GetTeachingCalendar()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetTeachingCalendar success with invalid token and retry login", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     validUsername,
+			password:     validPassword,
+			dynamicToken: "invalid-token",
+			spider:       client,
+		}
+		data, err = invalidTokenStudent.GetTeachingCalendar()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetTeachingCalendar failure with invalid token and retry login failure", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     "invalid-username",
+			password:     "invalid-password",
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		_, err = invalidTokenStudent.GetTeachingCalendar()
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
+
+	// Test GetClassroomStatus
+	t.Run("GetClassroomStatus success", func(t *testing.T) {
+		data, err = student.GetClassroomStatus(1)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetClassroomStatus success with invalid token and retry login", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     validUsername,
+			password:     validPassword,
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		data, err = invalidTokenStudent.GetClassroomStatus(1)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetClassroomStatus failure with invalid token and retry login failure", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     "invalid-username",
+			password:     "invalid-password",
+			dynamicToken: "invalid-token",
+			spider:       client,
+		}
+		_, err = invalidTokenStudent.GetClassroomStatus(1)
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
+
+	// GetStudentCourses
+	t.Run("GetStudentCourses success", func(t *testing.T) {
+		data, err = student.GetStudentCourses()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentCourses success with invalid token and retry login", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     validUsername,
+			password:     validPassword,
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		data, err = invalidTokenStudent.GetStudentCourses()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentCourses failure with invalid token and retry login failure", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     "invalid-username",
+			password:     "invalid-password",
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		_, err = invalidTokenStudent.GetStudentCourses()
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
+
+	// GetStudentExams
+	t.Run("GetStudentExams success", func(t *testing.T) {
+		data, err = student.GetStudentExams()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentExams success with invalid token and retry login", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     validUsername,
+			password:     validPassword,
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		data, err = invalidTokenStudent.GetStudentExams()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentExams failure with invalid token and retry login failure", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     "invalid-username",
+			password:     "invalid-password",
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		_, err = invalidTokenStudent.GetStudentExams()
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
+
+	// GetStudentInfo
+	t.Run("GetStudentInfo success", func(t *testing.T) {
+		data, err = student.GetInfo()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentInfo success with invalid token and retry login", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     validUsername,
+			password:     validPassword,
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		data, err = invalidTokenStudent.GetInfo()
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentInfo failure with invalid token and retry login failure", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     "invalid-username",
+			password:     "invalid-password",
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		_, err = invalidTokenStudent.GetInfo()
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
+
+	// GetStudentScore
+	t.Run("GetStudentScore success", func(t *testing.T) {
+		data, err = student.GetStudentScore(true)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+		data, err = student.GetStudentScore(false)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentScore success with invalid token and retry login", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     validUsername,
+			password:     validPassword,
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		data, err = invalidTokenStudent.GetStudentScore(true)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+		data, err = invalidTokenStudent.GetStudentScore(false)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentScore failure with invalid token and retry login failure", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     "invalid-username",
+			password:     "invalid-password",
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		_, err = invalidTokenStudent.GetStudentScore(true)
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+		_, err = invalidTokenStudent.GetStudentScore(false)
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
+
+	// GetStudentRank
+	t.Run("GetStudentRank success", func(t *testing.T) {
+		data, err = student.GetStudentRank(true)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+		data, err = student.GetStudentRank(false)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentRank success with invalid token and retry login", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     validUsername,
+			password:     validPassword,
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		data, err = invalidTokenStudent.GetStudentRank(true)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+		data, err = invalidTokenStudent.GetStudentRank(false)
+		if err != nil {
+			t.Fatalf("Expected no error, got %v", err)
+		}
+		if data == "" {
+			t.Fatalf("Expected data, got nil")
+		}
+	})
+
+	t.Run("GetStudentRank failure with invalid token and retry login failure", func(t *testing.T) {
+		var invalidTokenStudent Student = &StudentImpl{
+			username:     "invalid-username",
+			password:     "invalid-password",
+			dynamicToken: "invalid",
+			spider:       client,
+		}
+		_, err = invalidTokenStudent.GetStudentRank(true)
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+		_, err = invalidTokenStudent.GetStudentRank(false)
+		if err == nil {
+			t.Fatalf("Expected error, got nil")
+		}
+	})
 }
