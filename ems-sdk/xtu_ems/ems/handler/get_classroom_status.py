@@ -39,3 +39,22 @@ class TomorrowClassroomStatusGetter(TodayClassroomStatusGetter):
         classroom = [self._extra_classroom_info(row) for row in classroom]
         return ClassroomBoard(classrooms=classroom,
                               date=datetime.now().date() + timedelta(days=1)).to_category()
+
+
+class AssignedClassroomStatusGetter(TodayClassroomStatusGetter):
+    def __init__(self, day: int = 0):
+        super().__init__()
+        self.day = day
+
+    """查询教室状态"""
+
+    def _data(self):
+        return {'xzlx': str(self.day)}
+
+    @staticmethod
+    def today():
+        return AssignedClassroomStatusGetter(0)
+
+    @staticmethod
+    def tomorrow():
+        return AssignedClassroomStatusGetter(1)

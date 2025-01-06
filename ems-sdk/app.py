@@ -3,6 +3,7 @@ from typing import Generic, TypeVar
 
 import requests.exceptions
 from fastapi import FastAPI, Body, Header
+from fastapi.params import Path
 from pydantic import BaseModel
 from starlette.responses import PlainTextResponse
 
@@ -10,7 +11,8 @@ from xtu_ems.ems.account import AuthenticationAccount
 from xtu_ems.ems.ems import QZEducationalManageSystem, InvalidCaptchaException, InvalidAccountException, \
     UninitializedPasswordException
 from xtu_ems.ems.handler import Handler
-from xtu_ems.ems.handler.get_classroom_status import TodayClassroomStatusGetter, TomorrowClassroomStatusGetter
+from xtu_ems.ems.handler.get_classroom_status import TodayClassroomStatusGetter, TomorrowClassroomStatusGetter, \
+    AssignedClassroomStatusGetter
 from xtu_ems.ems.handler.get_student_courses import StudentCourseGetter
 from xtu_ems.ems.handler.get_student_exam import StudentExamGetter
 from xtu_ems.ems.handler.get_student_info import StudentInfoGetter
@@ -166,16 +168,23 @@ async def get_major_rank(token: str = Header(description="用户凭证")):
     return await _run_handler(major_total_rank_getter, token)
 
 
-@api.get("/classroom/today")
-async def get_today_classroom(token: str = Header(description="用户凭证")):
-    """获取今天教室"""
-    return await _run_handler(today_classroom_status_getter, token)
+@api.get("/classroom/{day}")
+async def get_classroom(
+    day: str = Path(description="举例当天的时间，例如今天为0,明天为1,或者也可以今天today,明天为tomorrow"),
+    token: str = Header(description="用户凭证")):
+    """获取指定日期教室"""
+    if day == "0" or day == "today":
+        return await _run_handler(today_classroom_status_getter, token)
+    elif day == "1" or day == "tomorrow":
+        return await _run_handler(tomorrow_classroom_status_getter, token)
+    else:
+        return await _run_handler(AssignedClassroomStatusGetter(int(day)), token)
 
 
-@api.get("/classroom/tomorrow")
-async def get_tomorrow_classroom(token: str = Header(description="用户凭证")):
-    """获取明天教室"""
-    return await _run_handler(tomorrow_classroom_status_getter, token)
+@api.get("/compulsory/rank")
+async def get_compulsory_rank(token: str = Header(description="用户凭证")):
+    """获取必修排名"""
+    return await _run_handler(major_compulsory_rank_getter, token)
 
 
 @api.get("/calendar")
