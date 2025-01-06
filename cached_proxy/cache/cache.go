@@ -15,19 +15,19 @@ type cacheItem[V any] struct {
 }
 
 // NewReadOnlyCache 创建并初始化一个新的缓存实例
-func NewReadOnlyCache[K string, V any](validator ItemValidator[V], updater Updater[K, V], executor executor.Executor) *ReadOnlyCache[K, V] {
+func NewReadOnlyCache[K string, V any](statusChecker ItemStatusChecker[V], updater Updater[K, V], executor executor.Executor) *ReadOnlyCache[K, V] {
 	return &ReadOnlyCache[K, V]{
-		items:     repo.NewMemRepo[K, cacheItem[V]](), // 初始化缓存映射
-		validator: validator,                          // 校验器
-		updater:   updater,                            // 更新器
-		executor:  executor,                           // 执行器
+		items:         repo.NewMemRepo[K, cacheItem[V]](), // 初始化缓存映射
+		statusChecker: statusChecker,                      // 检查器
+		updater:       updater,                            // 更新器
+		executor:      executor,                           // 执行器
 	}
 }
 
 // ReadOnlyCache 定义缓存结构
 type ReadOnlyCache[K string, V any] struct {
 	items         repo.KVRepo[K, cacheItem[V]] // 缓存项的存储映射
-	validator     ItemValidator[V]             // 缓存有效性校验器
+	statusChecker ItemStatusChecker[V]         // 缓存状态检查器
 	updater       Updater[K, V]                // 缓存更新器
 	executor      executor.Executor            // 执行器
 	onUpdateError err_handler.ErrorHandler     // 更新错误处理器
@@ -37,14 +37,13 @@ type ReadOnlyCache[K string, V any] struct {
 //
 // 返回值：数据、是否最新、是否过期
 func (c *ReadOnlyCache[K, V]) Get(key K) (value V, valid bool) {
-	item, _, needUpdate := c.getWithValid(key)
-	if !needUpdate {
-		// updateTask 更新任务
+	item, status := c.getWithValid(key)
+	needUpdate := status == Expired || status == NotFound
+	if needUpdate {
 		item.submitAt = time.Now()
-		updateTask := c.getUpdaterTask(key)
-		c.executor.Submit(updateTask)
+		c.executor.Submit(c.getUpdaterTask(key))
 	}
-	return item.data, !needUpdate
+	return item.data, status == Valid
 }
 
 // Set 将数据添加到缓存或更新现有数据
@@ -83,10 +82,7 @@ func (c *ReadOnlyCache[string, V]) getUpdaterTask(key string) func() {
 }
 
 // 获取数据并且检查有效性
-func (c *ReadOnlyCache[string, V]) getWithValid(key string) (item cacheItem[V], found bool, needUpdate bool) {
-	item, found = c.items.Get(key) // 在缓存中查找 key
-	if !found {
-		return cacheItem[V]{}, found, true
-	}
-	return item, found, c.validator.Valid(&item)
+func (c *ReadOnlyCache[string, V]) getWithValid(key string) (item cacheItem[V], status ItemStatus) {
+	item, _ = c.items.Get(key) // 在缓存中查找 key
+	return item, c.statusChecker.StatusOf(&item)
 }

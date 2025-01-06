@@ -10,22 +10,28 @@ func TestDefaultItemValidator_Valid(t *testing.T) {
 		name     string
 		updateAt time.Time
 		submitAt time.Time
-		expected bool
+		expected ItemStatus
 	}{
 		{
 			name:     "Update time expired, submit time not expired",
 			updateAt: time.Now().Add(-3 * time.Second),
 			submitAt: time.Now().Add(-1 * time.Second),
-			expected: true,
+			expected: Updating,
 		},
 		{
 			name:     "Update time not expired",
 			updateAt: time.Now().Add(-1 * time.Second),
 			submitAt: time.Now().Add(-4 * time.Second),
-			expected: true,
+			expected: Valid,
+		},
+		{
+			name:     "Update time expired, submit time expired",
+			updateAt: time.Now().Add(-3 * time.Second),
+			submitAt: time.Now().Add(-4 * time.Second),
+			expected: Expired,
 		},
 	}
-	validator := NewDefaultItemValidator[string](2*time.Second, 3*time.Second)
+	validator := NewDefaultItemStatusChecker[string](2*time.Second, 3*time.Second)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
@@ -33,14 +39,14 @@ func TestDefaultItemValidator_Valid(t *testing.T) {
 				updateAt: tt.updateAt,
 				submitAt: tt.submitAt,
 			}
-			if got := validator.Valid(item); got != tt.expected {
-				t.Errorf("Valid() = %v, expected %v", got, tt.expected)
+			if got := validator.StatusOf(item); got != tt.expected {
+				t.Errorf("StatusOf() = %v, expected %v", got, tt.expected)
 			}
 		})
 	}
 	t.Run("Item is nil", func(t *testing.T) {
-		if got := validator.Valid(nil); got != false {
-			t.Errorf("Valid() = %v, expected false", got)
+		if got := validator.StatusOf(nil); got != NotFound {
+			t.Errorf("StatusOf() = %v, expected false", got)
 		}
 	})
 }
