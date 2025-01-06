@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Mock ItemStatusChecker
+// Mock StatusChecker
 type mockChecker[V any] struct{}
 
 func (m *mockChecker[V]) StatusOf(*cacheItem[V]) ItemStatus {

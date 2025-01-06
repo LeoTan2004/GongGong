@@ -15,7 +15,7 @@ type cacheItem[V any] struct {
 }
 
 // NewReadOnlyCache 创建并初始化一个新的缓存实例
-func NewReadOnlyCache[K string, V any](statusChecker ItemStatusChecker[V], updater Updater[K, V], executor executor.Executor) *ReadOnlyCache[K, V] {
+func NewReadOnlyCache[K string, V any](statusChecker StatusChecker[V], updater Updater[K, V], executor executor.Executor) *ReadOnlyCache[K, V] {
 	return &ReadOnlyCache[K, V]{
 		items:         repo.NewMemRepo[K, cacheItem[V]](), // 初始化缓存映射
 		statusChecker: statusChecker,                      // 检查器
@@ -27,7 +27,7 @@ func NewReadOnlyCache[K string, V any](statusChecker ItemStatusChecker[V], updat
 // ReadOnlyCache 定义缓存结构
 type ReadOnlyCache[K string, V any] struct {
 	items         repo.KVRepo[K, cacheItem[V]] // 缓存项的存储映射
-	statusChecker ItemStatusChecker[V]         // 缓存状态检查器
+	statusChecker StatusChecker[V]             // 缓存状态检查器
 	updater       Updater[K, V]                // 缓存更新器
 	executor      executor.Executor            // 执行器
 	onUpdateError err_handler.ErrorHandler     // 更新错误处理器
