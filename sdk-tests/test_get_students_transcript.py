@@ -2,6 +2,8 @@ from unittest import TestCase
 from unittest.async_case import IsolatedAsyncioTestCase
 
 from common_data import session
+from xtu_ems.ems.handler import SessionInvalidException
+from xtu_ems.ems.session import Session
 
 
 class TestStudentTranscriptGetter(TestCase):
@@ -13,6 +15,13 @@ class TestStudentTranscriptGetter(TestCase):
         print(resp.model_dump_json(indent=4))
         self.assertIsNotNone(resp)
 
+    def test_handler_with_invalid_session(self):
+        """测试无效的session"""
+        from xtu_ems.ems.handler.get_students_transcript import StudentTranscriptGetter
+        handler = StudentTranscriptGetter()
+        with self.assertRaises(SessionInvalidException):
+            handler.handler(Session(token="invalid_token"))
+
 
 class TestAsyncStudentTranscriptGetter(IsolatedAsyncioTestCase):
     async def test_async_handler(self):
@@ -22,6 +31,13 @@ class TestAsyncStudentTranscriptGetter(IsolatedAsyncioTestCase):
         resp = await handler.async_handler(session)
         print(resp.model_dump_json(indent=4))
         self.assertIsNotNone(resp)
+
+    async def test_async_handler_with_invalid_session(self):
+        """测试异步无效的session"""
+        from xtu_ems.ems.handler.get_students_transcript import StudentTranscriptGetter
+        handler = StudentTranscriptGetter()
+        with self.assertRaises(SessionInvalidException):
+            await handler.async_handler(Session(token="invalid_token"))
 
 
 class TestStudentRankGetter(TestCase):
@@ -33,6 +49,13 @@ class TestStudentRankGetter(TestCase):
         print(resp.model_dump_json(indent=4))
         self.assertIsNotNone(resp)
 
+    def test_handler_with_invalid_session(self):
+        """测试无效的session"""
+        from xtu_ems.ems.handler.get_students_transcript import StudentRankGetter
+        handler = StudentRankGetter()
+        with self.assertRaises(SessionInvalidException):
+            handler.handler(Session(token="invalid_token"))
+
 
 class TestAsyncStudentRankGetter(IsolatedAsyncioTestCase):
     async def test_async_handler(self):
@@ -42,6 +65,13 @@ class TestAsyncStudentRankGetter(IsolatedAsyncioTestCase):
         resp = await handler.async_handler(session)
         print(resp.model_dump_json(indent=4))
         self.assertIsNotNone(resp)
+
+    async def test_async_handler_with_invalid_session(self):
+        """测试异步无效的session"""
+        from xtu_ems.ems.handler.get_students_transcript import StudentRankGetter
+        handler = StudentRankGetter()
+        with self.assertRaises(SessionInvalidException):
+            await handler.async_handler(Session(token="invalid_token"))
 
 
 class TestStudentRankGetterForCompulsory(TestCase):
@@ -53,6 +83,13 @@ class TestStudentRankGetterForCompulsory(TestCase):
         print(resp.model_dump_json(indent=4))
         self.assertIsNotNone(resp)
 
+    def test_handler_with_invalid_session(self):
+        """测试无效的session"""
+        from xtu_ems.ems.handler.get_students_transcript import StudentRankGetterForCompulsory
+        handler = StudentRankGetterForCompulsory()
+        with self.assertRaises(SessionInvalidException):
+            handler.handler(Session(token="invalid_token"))
+
 
 class AsyncTestStudentRankGetterForCompulsory(IsolatedAsyncioTestCase):
     async def test_async_handler(self):
@@ -61,6 +98,14 @@ class AsyncTestStudentRankGetterForCompulsory(IsolatedAsyncioTestCase):
         handler = StudentRankGetterForCompulsory()
         resp = await handler.async_handler(session)
         print(resp.model_dump_json(indent=4))
+        self.assertIsNotNone(resp)
+
+    async def test_async_handler_with_invalid_session(self):
+        """测试异步无效的session"""
+        from xtu_ems.ems.handler.get_students_transcript import StudentRankGetterForCompulsory
+        handler = StudentRankGetterForCompulsory()
+        with self.assertRaises(SessionInvalidException):
+            await handler.async_handler(Session(token="invalid_token"))
 
 
 class TestStudentTranscriptGetterForAcademicMinor(TestCase):
@@ -71,3 +116,10 @@ class TestStudentTranscriptGetterForAcademicMinor(TestCase):
         resp = handler.handler(session)
         print(resp.model_dump_json(indent=4))
         self.assertIsNotNone(resp)
+
+    def test_handler_with_invalid_session(self):
+        """测试无效的session"""
+        from xtu_ems.ems.handler.get_students_transcript import StudentTranscriptGetterForAcademicMinor
+        handler = StudentTranscriptGetterForAcademicMinor()
+        with self.assertRaises(SessionInvalidException):
+            handler.handler(Session(token="invalid_token"))

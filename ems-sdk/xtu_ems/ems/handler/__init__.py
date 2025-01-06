@@ -16,6 +16,10 @@ _R = TypeVar("_R")
 logger = logging.getLogger('xtu-ems.handler')
 
 
+class SessionInvalidException(Exception):
+    pass
+
+
 class Handler(ABC, Generic[_R]):
     @abstractmethod
     def handler(self, session: Session, *args, **kwargs) -> _R:
@@ -49,8 +53,7 @@ class EMSGetter(Handler[_R]):
         with self.get_session(session) as ems_session:
             logger.debug(f'[{self.__class__.__name__}] 正在获取数据-{self.url()}')
             resp = ems_session.get(self.url(), timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT, allow_redirects=False)
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            return self._extra_info(soup)
+            return self._do_with_response(resp.text)
 
     async def async_handler(self, session: Session, *args, **kwargs) -> _R:
         """异步获取学生信息"""
@@ -58,8 +61,19 @@ class EMSGetter(Handler[_R]):
             logger.debug(f'[{self.__class__.__name__}] 正在异步获取数据-{self.url()}')
             resp = await ems_session.get(self.url(), timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT,
                                          allow_redirects=False)
-            soup = BeautifulSoup(await resp.text(), 'html.parser')
+            return self._do_with_response(await resp.text())
+
+    def _do_with_response(self, response):
+        """处理响应"""
+        try:
+            soup = BeautifulSoup(response, 'html.parser')
             return self._extra_info(soup)
+        except AttributeError:
+            logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+            raise SessionInvalidException()
+        except IndexError:
+            logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+            raise SessionInvalidException()
 
     @abstractmethod
     def url(self):
@@ -77,8 +91,7 @@ class EMSPoster(EMSGetter[_R]):
             logger.debug(f'[{self.__class__.__name__}] 正在获取数据-{self.url()}')
             resp = ems_session.post(url=self.url(), data=self._data(), timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT,
                                     allow_redirects=False)
-            soup = BeautifulSoup(resp.text, 'html.parser')
-            return self._extra_info(soup)
+            return self._do_with_response(resp.text)
 
     async def async_handler(self, session: Session, *args, **kwargs) -> _R:
         """异步获取学生信息"""
@@ -86,8 +99,7 @@ class EMSPoster(EMSGetter[_R]):
             logger.debug(f'[{self.__class__.__name__}] 正在异步获取数据-{self.url()}')
             resp = await ems_session.post(url=self.url(), data=self._data(),
                                           timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT, allow_redirects=False)
-            soup = BeautifulSoup(await resp.text(), 'html.parser')
-            return self._extra_info(soup)
+            return self._do_with_response(await resp.text())
 
     @abstractmethod
     def _data(self):

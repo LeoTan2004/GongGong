@@ -2,10 +2,11 @@ from functools import cache
 from io import BytesIO
 
 from bs4 import BeautifulSoup
+from pdfminer.pdfparser import PDFSyntaxError
 from pdfplumber import PDF
 
 from xtu_ems.ems.config import XTUEMSConfig, RequestConfig
-from xtu_ems.ems.handler import Handler, _R, EMSPoster, logger
+from xtu_ems.ems.handler import Handler, _R, EMSPoster, logger, SessionInvalidException
 from xtu_ems.ems.model import ScoreBoard, Score, RankInfo
 from xtu_ems.ems.session import Session
 
@@ -42,8 +43,18 @@ class StudentTranscriptGetter(Handler[ScoreBoard]):
             resp = await ems_session.post(url=self.url(), data=_data, timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT,
                                           allow_redirects=False)
             if resp.status == 200:
-                pdf = PDF(BytesIO(await resp.content.read()))
-                return self._extra_info(pdf)
+                try:
+                    pdf = PDF(BytesIO(await resp.content.read()))
+                    return self._extra_info(pdf)
+                except AttributeError:
+                    logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+                    raise SessionInvalidException()
+                except IndexError:
+                    logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+                    raise SessionInvalidException()
+                except PDFSyntaxError:
+                    logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+                    raise SessionInvalidException()
 
     def handler(self, session: Session, *args, **kwargs):
         with self.get_session(session) as ems_session:
@@ -51,8 +62,18 @@ class StudentTranscriptGetter(Handler[ScoreBoard]):
             resp = ems_session.post(url=self.url(), data=_data, timeout=RequestConfig.XTU_EMS_REQUEST_TIMEOUT,
                                     allow_redirects=False)
             if resp.status_code == 200:
-                pdf = PDF(BytesIO(resp.content))
-                return self._extra_info(pdf)
+                try:
+                    pdf = PDF(BytesIO(resp.content))
+                    return self._extra_info(pdf)
+                except AttributeError:
+                    logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+                    raise SessionInvalidException()
+                except IndexError:
+                    logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+                    raise SessionInvalidException()
+                except PDFSyntaxError:
+                    logger.exception(f'[{self.__class__.__name__}] 解析成绩单失败')
+                    raise SessionInvalidException()
 
     def url(self):
         return XTUEMSConfig.XTU_EMS_STUDENT_TRANSCRIPT_URL
