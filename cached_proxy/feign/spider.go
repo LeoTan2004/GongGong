@@ -38,4 +38,7 @@ type SpiderClient interface {
 	// token: 服务的身份验证令牌。
 	// onlyRequired: 是否仅包括必修课程的排名计算。
 	GetStudentRank(token string, onlyRequired bool) (any, error)
+
+	// NewStudent 创建一个新的学生账户。
+	NewStudent(username string, password string) (Student, error)
 }

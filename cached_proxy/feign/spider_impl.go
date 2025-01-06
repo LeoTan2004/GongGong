@@ -232,6 +232,11 @@ func (c *SpiderClientImpl) GetStudentRank(token string, onlyRequired bool) (any,
 	return commonResponse.Data, nil
 }
 
+// NewStudent 创建一个新的学生账户。
+func (c *SpiderClientImpl) NewStudent(username string, password string) (Student, error) {
+	return NewStudentImpl(username, password, c)
+}
+
 func NewSpiderClientImpl(baseUrl string, client http.Client) *SpiderClientImpl {
 	if client.Timeout == 0 {
 		client.Timeout = 15 * time.Second

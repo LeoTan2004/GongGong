@@ -45,6 +45,14 @@ func (m *MockSpiderClient) GetStudentRank(_ string, _ bool) (any, error) {
 	return m.expectedReturn, m.expectedError
 }
 
+// NewStudent 创建一个新的学生账户。
+func (m *MockSpiderClient) NewStudent(username string, password string) (Student, error) {
+	return &StudentImpl{
+		username: username,
+		password: password,
+	}, nil
+}
+
 func TestStudentImpl_doGetter(t *testing.T) {
 	retryTime := 3
 	tests := []struct {
@@ -191,7 +199,8 @@ func TestNewStudentImpl(t *testing.T) {
 		args    args
 		wantErr bool
 	}{
-		{name: "NewStudentImpl success",
+		{
+			name: "NewStudentImpl success",
 			args: args{
 				username: "valid-username",
 				password: "valid-password",
@@ -203,7 +212,8 @@ func TestNewStudentImpl(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{name: "NewStudentImpl failure with invalid username and password",
+		{
+			name: "NewStudentImpl failure with invalid username and password",
 			args: args{
 				username: "invalid-username",
 				password: "invalid-password",
@@ -213,7 +223,8 @@ func TestNewStudentImpl(t *testing.T) {
 			},
 			wantErr: true,
 		},
-		{name: "NewStudentImpl failure with service unavailable",
+		{
+			name: "NewStudentImpl failure with service unavailable",
 			args: args{
 				username: "valid-username",
 				password: "valid-password",
