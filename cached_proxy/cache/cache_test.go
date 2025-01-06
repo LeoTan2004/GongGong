@@ -127,7 +127,7 @@ func TestCache_Get(t *testing.T) {
 			if value != tt.expected {
 				t.Errorf("Get() failed, expected '%v', got '%v' (valid: %v)", tt.expected, value, valid)
 			}
-			time.Sleep(1 * time.Millisecond)
+			time.Sleep(10 * time.Millisecond)
 			// Get the value again
 			if tt.again {
 				value, valid = cache.Get(tt.key)
