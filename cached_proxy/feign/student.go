@@ -75,6 +75,10 @@ func (s *StudentImpl) Username() string {
 	return s.username
 }
 
+func (s *StudentImpl) AccountId() string {
+	return s.username
+}
+
 func (s *StudentImpl) Token() string {
 	return s.token
 }

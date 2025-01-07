@@ -33,6 +33,10 @@ type ReadOnlyCache[K string, V any] struct {
 	onUpdateError ErrorHandler[K]              // 更新错误处理器
 }
 
+func (c *ReadOnlyCache[K, V]) Delete(key K) bool {
+	return c.items.Delete(key)
+}
+
 // Get 获取指定键的缓存数据
 //
 // 返回值：数据、是否最新、是否过期

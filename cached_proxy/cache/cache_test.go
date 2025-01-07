@@ -40,7 +40,7 @@ func (e *errorHandler[K]) HandlerError(_ K, _ error) {
 }
 
 // Test for Get
-func TestCache_Get(t *testing.T) {
+func TestReadOnlyCache_Get(t *testing.T) {
 	tests := []struct {
 		name           string                  // 测试名称
 		key            string                  // 键
@@ -147,7 +147,7 @@ func TestCache_Get(t *testing.T) {
 }
 
 // Test for Set
-func TestCache_Set(t *testing.T) {
+func TestReadOnlyCache_Set(t *testing.T) {
 	validator := &mockChecker[string]{}
 	updater := &mockUpdater[string, string]{data: "updated value"}
 	exec := executor.NewWorkerPool(4)
@@ -161,5 +161,60 @@ func TestCache_Set(t *testing.T) {
 	item, valid := repo.Get("key1")
 	if !valid || item.data != "test value" {
 		t.Errorf("Set() failed, expected 'test value', got '%v' (valid: %v)", item.data, valid)
+	}
+}
+
+func TestReadOnlyCache_Delete(t *testing.T) {
+	tests := []struct {
+		name               string
+		deleteKey          string
+		expectReturn       bool
+		expectFoundInRetry bool
+		expectValueInRetry any
+	}{
+		{
+			name:               "Delete Exist Key",
+			deleteKey:          "key1",
+			expectReturn:       true,
+			expectFoundInRetry: false,
+			expectValueInRetry: nil,
+		},
+		{
+			name:               "Delete Not Exist Key",
+			deleteKey:          "key2",
+			expectReturn:       true,
+			expectFoundInRetry: false,
+			expectValueInRetry: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			exec := executor.NewWorkerPool(4)
+			exec.Run()
+			defer exec.Wait()
+			onUpdaterError := &errorHandler[string]{}
+			cache := NewReadOnlyCache(&mockChecker[string]{status: Valid}, nil, exec, onUpdaterError)
+			repo := cache.items
+
+			// Add a new value
+			repo.Set("key1", cacheItem[string]{
+				data:     "value",
+				updateAt: time.Now().Add(-10 * time.Second),
+				submitAt: time.Now().Add(-10 * time.Second),
+			})
+
+			// Delete the value
+			result := cache.Delete(tt.deleteKey)
+			if result != tt.expectReturn {
+				t.Errorf("Delete() failed, expected %v, got %v", tt.expectReturn, result)
+			}
+
+			// Check the value
+			_, found := repo.Get(tt.deleteKey)
+			if found != tt.expectFoundInRetry {
+				t.Errorf("Delete() failed, expected %v, got %v", tt.expectFoundInRetry, found)
+			}
+		})
 	}
 }
