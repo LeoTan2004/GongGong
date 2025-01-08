@@ -1,9 +1,7 @@
 package feign
 
 import (
-	"crypto/rand"
 	"fmt"
-	"io"
 	"strings"
 )
 
@@ -37,28 +35,7 @@ type StudentImpl struct {
 	spider       SpiderClient
 	username     string
 	password     string
-	token        string // 静态token，用于对外部使用，一般不会变化
 	dynamicToken string // 动态token，可能遇到失效的问题，会重新申请
-}
-
-// GenerateUUID 生成一个UUID
-func GenerateUUID() (string, error) {
-	uuid := make([]byte, 16)
-	_, err := io.ReadFull(rand.Reader, uuid)
-	if err != nil {
-		return "", err
-	}
-	// Set the version (4) and variant bits as per RFC 4122
-	uuid[6] = (uuid[6] & 0x0f) | 0x40 // Version 4
-	uuid[8] = (uuid[8] & 0x3f) | 0x80 // Variant is 10xxxxxx
-
-	// Format as a UUID string
-	return fmt.Sprintf("%08x-%04x-%04x-%04x-%012x",
-		uuid[0:4],
-		uuid[4:6],
-		uuid[6:8],
-		uuid[8:10],
-		uuid[10:16]), nil
 }
 
 func NewStudentImpl(username string, password string, client SpiderClient) (*StudentImpl, error) {
@@ -67,7 +44,6 @@ func NewStudentImpl(username string, password string, client SpiderClient) (*Stu
 	if err != nil {
 		return nil, err
 	}
-	s.token, err = GenerateUUID()
 	return &s, err
 }
 
@@ -77,10 +53,6 @@ func (s *StudentImpl) Username() string {
 
 func (s *StudentImpl) AccountId() string {
 	return s.username
-}
-
-func (s *StudentImpl) Token() string {
-	return s.token
 }
 
 // refreshDynamicToken 刷新动态token
