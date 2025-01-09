@@ -11,6 +11,10 @@ type MockAccount struct {
 	statue AccountStatus
 }
 
+func (m *MockAccount) setStatus(status AccountStatus) {
+	m.statue = status
+}
+
 func (m *MockAccount) Status() AccountStatus {
 	return m.statue
 }
@@ -52,7 +56,7 @@ func TestGetAccountByAccountId(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			idRepo := repo.NewMemRepo[string, Account]()
 			tokenRepo := repo.NewMemRepo[string, Account]()
-			service := &AccountServiceImpl{idRepo: idRepo, tokenRepo: tokenRepo}
+			service := &AccountServiceImpl[Account]{idRepo: idRepo, tokenRepo: tokenRepo}
 
 			tt.setup(idRepo, tokenRepo)
 
@@ -62,7 +66,7 @@ func TestGetAccountByAccountId(t *testing.T) {
 					t.Errorf("expected error for accountID '%s', got nil", tt.accountID)
 				}
 			} else {
-				if err != nil || acc.AccountId() != tt.accountID {
+				if err != nil || (*acc).AccountId() != tt.accountID {
 					t.Errorf("expected to find account with id '%s', got error: %v", tt.accountID, err)
 				}
 			}
@@ -99,7 +103,7 @@ func TestGetAccountByToken(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			idRepo := repo.NewMemRepo[string, Account]()
 			tokenRepo := repo.NewMemRepo[string, Account]()
-			service := &AccountServiceImpl{idRepo: idRepo, tokenRepo: tokenRepo}
+			service := &AccountServiceImpl[Account]{idRepo: idRepo, tokenRepo: tokenRepo}
 
 			tt.setup(idRepo, tokenRepo)
 
@@ -109,7 +113,7 @@ func TestGetAccountByToken(t *testing.T) {
 					t.Errorf("expected error for token '%s', got nil", tt.token)
 				}
 			} else {
-				if err != nil || acc.Token() != tt.token {
+				if err != nil || (*acc).Token() != tt.token {
 					t.Errorf("expected to find account with token '%s', got error: %v", tt.token, err)
 				}
 			}
@@ -166,7 +170,7 @@ func TestSaveOrUpdateAccount(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			idRepo := repo.NewMemRepo[string, Account]()
 			tokenRepo := repo.NewMemRepo[string, Account]()
-			service := &AccountServiceImpl{idRepo: idRepo, tokenRepo: tokenRepo}
+			service := &AccountServiceImpl[Account]{idRepo: idRepo, tokenRepo: tokenRepo}
 
 			tt.setup(idRepo, tokenRepo)
 
@@ -188,6 +192,58 @@ func TestSaveOrUpdateAccount(t *testing.T) {
 				account, _ := tokenRepo.Get(tt.account.token)
 				if account.AccountId() != tt.account.id {
 					t.Errorf("expected account with token '%s' to have id '%s', got '%s'", tt.account.token, tt.account.id, account.AccountId())
+				}
+			}
+		})
+	}
+}
+
+func TestLockAccount(t *testing.T) {
+	tests := []struct {
+		name        string
+		accountID   string
+		setup       func(idRepo, tokenRepo repo.KVRepo[string, Account])
+		expectError bool
+	}{
+		{
+			name:      "Existing account",
+			accountID: "user1",
+			setup: func(idRepo, tokenRepo repo.KVRepo[string, Account]) {
+				account := &MockAccount{id: "user1", token: "token1", statue: Normal}
+				idRepo.Set("user1", account)
+				tokenRepo.Set("token1", account)
+			},
+			expectError: false,
+		},
+		{
+			name:        "Non-existing account",
+			accountID:   "nonexistent",
+			setup:       func(idRepo, tokenRepo repo.KVRepo[string, Account]) {},
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idRepo := repo.NewMemRepo[string, Account]()
+			tokenRepo := repo.NewMemRepo[string, Account]()
+			service := &AccountServiceImpl[Account]{idRepo: idRepo, tokenRepo: tokenRepo}
+
+			tt.setup(idRepo, tokenRepo)
+
+			err := service.LockAccount(tt.accountID)
+			if tt.expectError {
+				if err == nil {
+					t.Errorf("expected error for accountID '%s', got nil", tt.accountID)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("expected to lock account with id '%s', got error: %v", tt.accountID, err)
+				} else {
+					acc, _ := idRepo.Get(tt.accountID)
+					if acc.Status() != Banned {
+						t.Errorf("expected account with id '%s' to be banned, got status: %v", tt.accountID, acc.Status())
+					}
 				}
 			}
 		})
