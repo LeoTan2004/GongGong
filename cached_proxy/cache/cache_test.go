@@ -24,11 +24,11 @@ type mockUpdater[K, V any] struct {
 	Error     error
 }
 
-func (u *mockUpdater[K, V]) Invoke(K) (V, error) {
+func (u *mockUpdater[K, V]) Invoke(K) (*V, error) {
 	if u.returnErr {
-		return u.data, u.Error
+		return &u.data, u.Error
 	}
-	return u.data, nil
+	return &u.data, nil
 }
 
 type errorHandler[K any] struct {

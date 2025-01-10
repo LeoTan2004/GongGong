@@ -14,7 +14,12 @@ type cacheItem[V any] struct {
 }
 
 // NewReadOnlyCache 创建并初始化一个新的缓存实例
-func NewReadOnlyCache[K string, V any](statusChecker StatusChecker[V], updater func(key K) (V, error), executor executor.Executor, handler func(key K, err error)) *ReadOnlyCache[K, V] {
+func NewReadOnlyCache[K string, V any](
+	statusChecker StatusChecker[V], // 状态检查器
+	updater func(key K) (*V, error), // 更新器
+	executor executor.Executor, // 执行器
+	handler func(key K, err error), // 错误处理器
+) *ReadOnlyCache[K, V] {
 	return &ReadOnlyCache[K, V]{
 		items:         repo.NewMemRepo[K, cacheItem[V]](), // 初始化缓存映射
 		statusChecker: statusChecker,                      // 检查器
@@ -28,7 +33,7 @@ func NewReadOnlyCache[K string, V any](statusChecker StatusChecker[V], updater f
 type ReadOnlyCache[K string, V any] struct {
 	items         repo.KVRepo[K, cacheItem[V]] // 缓存项的存储映射
 	statusChecker StatusChecker[V]             // 缓存状态检查器
-	updater       func(key K) (V, error)       // 缓存更新器
+	updater       func(key K) (*V, error)      // 缓存更新器
 	executor      executor.Executor            // 执行器
 	onUpdateError func(key K, err error)       // 更新错误处理器
 }
@@ -79,7 +84,7 @@ func (c *ReadOnlyCache[string, V]) getUpdaterTask(key string) func() {
 		if err != nil {
 			c.onUpdateError(key, err)
 		} else {
-			c.Set(key, result)
+			c.Set(key, *result)
 		}
 	}
 	return updateTask
