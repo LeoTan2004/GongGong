@@ -14,7 +14,7 @@ type cacheItem[V any] struct {
 }
 
 // NewReadOnlyCache 创建并初始化一个新的缓存实例
-func NewReadOnlyCache[K string, V any](statusChecker StatusChecker[V], updater Updater[K, V], executor executor.Executor, handler ErrorHandler[K]) *ReadOnlyCache[K, V] {
+func NewReadOnlyCache[K string, V any](statusChecker StatusChecker[V], updater func(key K) (V, error), executor executor.Executor, handler func(key K, err error)) *ReadOnlyCache[K, V] {
 	return &ReadOnlyCache[K, V]{
 		items:         repo.NewMemRepo[K, cacheItem[V]](), // 初始化缓存映射
 		statusChecker: statusChecker,                      // 检查器
@@ -28,9 +28,9 @@ func NewReadOnlyCache[K string, V any](statusChecker StatusChecker[V], updater U
 type ReadOnlyCache[K string, V any] struct {
 	items         repo.KVRepo[K, cacheItem[V]] // 缓存项的存储映射
 	statusChecker StatusChecker[V]             // 缓存状态检查器
-	updater       Updater[K, V]                // 缓存更新器
+	updater       func(key K) (V, error)       // 缓存更新器
 	executor      executor.Executor            // 执行器
-	onUpdateError ErrorHandler[K]              // 更新错误处理器
+	onUpdateError func(key K, err error)       // 更新错误处理器
 }
 
 func (c *ReadOnlyCache[K, V]) Delete(key K) bool {
@@ -75,9 +75,9 @@ func (c *ReadOnlyCache[K, V]) Set(key K, data V) {
 // 获取更新任务，更新任务中会调用创建时给的更新器去更新。同时也会自动处理好时间记录等问题
 func (c *ReadOnlyCache[string, V]) getUpdaterTask(key string) func() {
 	updateTask := func() {
-		result, err := c.updater.Invoke(key)
+		result, err := c.updater(key)
 		if err != nil {
-			c.onUpdateError.HandlerError(key, err)
+			c.onUpdateError(key, err)
 		} else {
 			c.Set(key, result)
 		}

@@ -6,6 +6,9 @@ import (
 )
 
 type Student interface {
+	// Username 获取学生的用户名。
+	Username() string
+
 	// GetTeachingCalendar 获取当前学期的教学日历。
 	GetTeachingCalendar() (any, error)
 
@@ -48,10 +51,6 @@ func NewStudentImpl(username string, password string, client SpiderClient) (*Stu
 }
 
 func (s *StudentImpl) Username() string {
-	return s.username
-}
-
-func (s *StudentImpl) AccountId() string {
 	return s.username
 }
 
