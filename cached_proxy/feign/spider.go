@@ -1,5 +1,10 @@
 package feign
 
+import (
+	"net/http"
+	"os"
+)
+
 // SpiderClient 定义了用于与 spider 服务交互的接口。
 // 提供了获取教学日历、教室状态、学生信息，以及处理身份验证和其他学生相关操作的方法。
 type SpiderClient interface {
@@ -41,4 +46,14 @@ type SpiderClient interface {
 
 	// NewStudent 创建一个新的学生账户。
 	NewStudent(username string, password string) (Student, error)
+}
+
+func GetDefaultClient(baseUrl string) SpiderClient {
+	if baseUrl == "" {
+		baseUrl = os.Getenv("SPIDER_URL")
+	}
+	if baseUrl == "" {
+		baseUrl = "http://localhost:8000"
+	}
+	return NewSpiderClientImpl(baseUrl, http.Client{})
 }

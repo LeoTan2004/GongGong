@@ -10,9 +10,9 @@ ARG PROXY="https://mirrors.cloud.tencent.com/pypi/simple"
 
 # 安装依赖，仅在 requirements 文件发生变化时重新安装
 COPY ./requirements*.txt ./
-RUN pip install --upgrade pip -i $PROXY \
+RUN pip install --upgrade pip -i $PROXY --no-cache\
     && pip config set global.index-url $PROXY \
-    && pip install -r requirements.txt \
+    && pip install -r requirements.txt --no-cache\
     && rm -f requirements*.txt
 
 # 应用构建阶段
