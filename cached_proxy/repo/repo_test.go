@@ -73,3 +73,28 @@ func TestMemRepo(t *testing.T) {
 	})
 
 }
+
+func TestStaticRepo(t *testing.T) {
+	// 测试 Set 和 Get 方法
+	t.Run("Set and Get success", func(t *testing.T) {
+		repo := NewStaticRepo[string, int]()
+		repo.Set("key1", 100)
+		value, found := repo.Get("key1")
+		if !found {
+			t.Errorf("期望找到键 'key1'，但未找到")
+		}
+		if value != 100 {
+			t.Errorf("期望值为 100，实际值为 %d", value)
+		}
+	})
+
+	// 测试 Delete 方法
+	t.Run("Delete success", func(t *testing.T) {
+		repo := NewStaticRepo[string, int]()
+		repo.Set("key1", 100)
+		success := repo.Delete("key1")
+		if !success {
+			t.Errorf("期望删除成功，但未成功")
+		}
+	})
+}

@@ -30,3 +30,23 @@ func (m *MemRepo[K, V]) Get(key K) (value V, found bool) {
 func (m *MemRepo[K, V]) Set(key K, data V) {
 	m.items[key] = data
 }
+
+type StaticRepo[K string, V any] struct {
+	value V
+}
+
+func NewStaticRepo[K string, V any]() *StaticRepo[K, V] {
+	return &StaticRepo[K, V]{}
+}
+
+func (s *StaticRepo[K, V]) Get(_ K) (value V, found bool) {
+	return s.value, true
+}
+
+func (s *StaticRepo[K, V]) Set(_ K, data V) {
+	s.value = data
+}
+
+func (s *StaticRepo[K, V]) Delete(_ K) bool {
+	return true
+}
