@@ -21,6 +21,10 @@ type ServiceImpl struct {
 	accountRepo repository
 }
 
+func NewServiceImpl(accountRepo repository) *ServiceImpl {
+	return &ServiceImpl{accountRepo: accountRepo}
+}
+
 func (s *ServiceImpl) GetAccountByAccountID(accountID string) (Account, error) {
 	account, err := s.accountRepo.GetAccountByAccountID(accountID)
 	if err != nil {
@@ -57,12 +61,15 @@ func (s *ServiceImpl) newAccount(username string, password string) (Account, err
 
 func (s *ServiceImpl) Login(username string, password string) (string, error) {
 	for {
-		account, err := s.GetAccountByAccountID(username)
+		account, err := s.newAccount(username, password)
 		if err != nil {
 			return "", err
 		}
 		err = s.accountRepo.SaveOrUpdateAccount(account)
 		if err != nil {
+			if err.Error() == "token has been occupied" {
+				continue
+			}
 			return "", err
 		}
 		return account.Token(), nil

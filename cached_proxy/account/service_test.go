@@ -107,8 +107,8 @@ func TestServiceImpl_Login(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
-	if token != "token1" {
-		t.Fatalf("expected token to be 'token1', got %v", token)
+	if token == "token1" {
+		t.Fatalf("expected new token except %v", token)
 	}
 }
 

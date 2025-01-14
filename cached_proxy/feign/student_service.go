@@ -25,7 +25,7 @@ func NewStudentServiceImpl(client *SpiderClient) *StudentServiceImpl {
 		spiderClient := GetDefaultClient("")
 		client = &spiderClient
 	}
-	return &StudentServiceImpl{client: *client}
+	return &StudentServiceImpl{repo: repo.NewMemRepo[string, *Student](), client: *client}
 }
 
 func (s *StudentServiceImpl) GetStudent(username string) (*Student, error) {

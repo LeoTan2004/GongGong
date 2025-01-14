@@ -19,6 +19,13 @@ type MemRepository struct {
 	tokenRepo repo.MemRepo[string, Account] // 用于根据token查找账户
 }
 
+func NewMemRepository() *MemRepository {
+	return &MemRepository{
+		idRepo:    *repo.NewMemRepo[string, Account](),
+		tokenRepo: *repo.NewMemRepo[string, Account](),
+	}
+}
+
 func (m *MemRepository) GetAccountByAccountID(accountID string) (Account, error) {
 	account, found := m.idRepo.Get(accountID)
 	if !found {
@@ -42,7 +49,7 @@ func (m *MemRepository) SaveOrUpdateAccount(account Account) error {
 	// if the token has been used by other account, we should reject the request
 	tokenAccount, found := m.tokenRepo.Get(token)
 	if found && tokenAccount.AccountID() != accountId {
-		return fmt.Errorf("your token has been used by other account")
+		return fmt.Errorf("token has been occupied")
 	}
 
 	// if the account has other token, we should delete the old token
