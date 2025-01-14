@@ -19,6 +19,7 @@ func main() {
 	server.HandleFunc("/calendar", CalendarHandler.GetInfo)
 	server.HandleFunc("/classroom/today", TodayClassroomHandler.GetInfo)
 	server.HandleFunc("/classroom/tomorrow", TomorrowClassroomHandler.GetInfo)
+	fmt.Printf("Proxy Server URL: %s\n", SpiderUrl)
 	fmt.Println("Starting server on :8080")
 	err := http.ListenAndServe(":8080", server)
 	if err != nil {

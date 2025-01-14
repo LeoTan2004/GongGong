@@ -1,5 +1,7 @@
 package main
 
+import "os"
+
 var (
-	SpiderUrl = "http://localhost:8000"
+	SpiderUrl = os.Getenv("SPIDER_URL")
 )
