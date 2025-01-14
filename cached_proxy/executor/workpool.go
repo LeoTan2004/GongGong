@@ -7,6 +7,7 @@ type WorkerPool struct {
 	tasks     chan func()    // 任务队列
 	wg        sync.WaitGroup // 用于等待所有任务完成
 	workerNum int            // 协程数量
+	startup   bool
 }
 
 // NewWorkerPool 创建一个新的协程池
@@ -34,8 +35,13 @@ func (wp *WorkerPool) Run() {
 
 // Submit 提交任务到任务队列
 func (wp *WorkerPool) Submit(task func()) {
+	if !wp.startup {
+		wp.Run()
+		wp.startup = true
+	}
 	wp.wg.Add(1) // 增加一个任务
 	wp.tasks <- task
+
 }
 
 // Wait 等待所有任务完成
