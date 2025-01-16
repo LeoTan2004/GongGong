@@ -27,10 +27,6 @@ var (
 	AccountService account.Service = account.NewServiceImpl(AccountRepository)
 )
 
-func init() {
-	// 从账户仓库中加载账户信息
-}
-
 // updateTask 是一个通用的更新任务， 用于更新学生信息， 同时也会根据返回的错误信息进行账户锁定
 func updateTask[V any](update func(*feign.Student) (*V, error)) func(string) (*V, bool) {
 	return func(studentID string) (*V, bool) {

@@ -45,12 +45,12 @@ func (s *StudentServiceImpl) SetStudent(username string, password string, verify
 	var student Student
 	var err error
 	if verify {
-		student = &StudentImpl{username: username, password: password, spider: s.client}
-	} else {
 		student, err = s.client.NewStudent(username, password)
 		if err != nil {
 			return err
 		}
+	} else {
+		student = &StudentImpl{username: username, password: password, spider: s.client}
 	}
 	s.repo.Set(username, &student)
 	return nil
