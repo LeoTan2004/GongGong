@@ -6,7 +6,6 @@ import (
 )
 
 func main() {
-
 	server := http.NewServeMux()
 	server.HandleFunc("/login", Login)
 	server.HandleFunc("/courses", CourseHandler.GetInfo)

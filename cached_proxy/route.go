@@ -26,7 +26,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Bad Request", http.StatusBadRequest)
 		return
 	}
-	err = StudentService.SetStudent(creds.Username, creds.Password)
+	err = StudentService.SetStudent(creds.Username, creds.Password, true)
 	if err == nil {
 		token, err := AccountService.Login(creds.Username, creds.Password)
 		if err != nil {

@@ -4,12 +4,9 @@ import (
 	"encoding/gob"
 	"log"
 	"os"
+	path2 "path"
 )
 
-type fileInterface[K interface{ string }, V any] interface {
-	writeBack(key K, data V) error
-	loadAll() error
-}
 type FileRepo[K interface{ string }, V any] struct {
 	memRepository MemRepo[K, V]
 	path          string
@@ -26,20 +23,36 @@ func NewFileRepos[K interface{ string }, V any](path string) *FileRepo[K, V] {
 		if err != nil {
 			log.Fatalf("Failed to load data from file %s: %v", path, err)
 		}
+	} else {
+		// 如果文件不存在，检查目录是否存在
+		dir := path[:len(path)-len(path2.Base(path))]
+		if dir == "" {
+			dir = "."
+		}
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			err := os.MkdirAll(dir, 0755)
+			if err != nil {
+				log.Fatalf("Failed to create directory %s: %v", dir, err)
+			}
+		}
 	}
 	return repo
 }
 
 // writeBack 将数据写回文件
 func (f *FileRepo[K, V]) writeBack(_ K, _ V) error {
+	log.Print("writeBack to file")
 	file, err := os.OpenFile(f.path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
 	if err != nil {
 		return err
 	}
 	defer func(file *os.File) {
+		log.Printf("Closing file %s", f.path)
 		err := file.Close()
 		if err != nil {
 			log.Printf("Failed to close file %s: %v", f.path, err)
+		} else {
+			log.Printf("Closed file %s", f.path)
 		}
 	}(file)
 

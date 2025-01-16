@@ -5,21 +5,21 @@ import (
 	"testing"
 )
 
-func setup() *MemRepository {
-	return &MemRepository{
-		idRepo:    *repo.NewMemRepo[string, Account](),
-		tokenRepo: *repo.NewMemRepo[string, Account](),
+func setup() *Repository {
+	return &Repository{
+		idRepo:    repo.NewMemRepo[string, Account](),
+		tokenRepo: repo.NewMemRepo[string, Account](),
 	}
 }
 
 func TestSaveOrUpdateAccount(t *testing.T) {
 	memRepo := setup()
 
-	account1 := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account1 := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 
 	err := memRepo.SaveOrUpdateAccount(account1)
@@ -31,11 +31,11 @@ func TestSaveOrUpdateAccount(t *testing.T) {
 func TestGetAccountByAccountID(t *testing.T) {
 	memRepo := setup()
 
-	account1 := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account1 := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 
 	err := memRepo.SaveOrUpdateAccount(account1)
@@ -48,18 +48,18 @@ func TestGetAccountByAccountID(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if acc.AccountID() != "user1" {
-		t.Fatalf("expected accountID to be 'user1', got %v", acc.AccountID())
+		t.Fatalf("expected Username to be 'user1', got %v", acc.AccountID())
 	}
 }
 
 func TestGetAccountByToken(t *testing.T) {
 	memRepo := setup()
 
-	account1 := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account1 := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 
 	err := memRepo.SaveOrUpdateAccount(account1)
@@ -72,25 +72,25 @@ func TestGetAccountByToken(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if acc.Token() != "token1" {
-		t.Fatalf("expected token to be 'token1', got %v", acc.Token())
+		t.Fatalf("expected StaticToken to be 'token1', got %v", acc.Token())
 	}
 }
 
 func TestSaveOrUpdateAccountWithDuplicateToken(t *testing.T) {
 	memRepo := setup()
 
-	account1 := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account1 := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 
-	account2 := &simpleAccountImpl{
-		accountID: "user2",
-		token:     "token2",
-		password:  "password2",
-		status:    Normal,
+	account2 := &SimpleAccountImpl{
+		Username:    "user2",
+		StaticToken: "token2",
+		Password:    "password2",
+		status:      Normal,
 	}
 
 	err := memRepo.SaveOrUpdateAccount(account1)
@@ -112,11 +112,11 @@ func TestSaveOrUpdateAccountWithDuplicateToken(t *testing.T) {
 func TestSaveOrUpdateAccountWithUpdatingToken(t *testing.T) {
 	memRepo := setup()
 
-	account1 := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account1 := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 
 	err := memRepo.SaveOrUpdateAccount(account1)
@@ -135,6 +135,6 @@ func TestSaveOrUpdateAccountWithUpdatingToken(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if acc.Token() != "newToken1" {
-		t.Fatalf("expected token to be 'newToken1', got %v", acc.Token())
+		t.Fatalf("expected StaticToken to be 'newToken1', got %v", acc.Token())
 	}
 }

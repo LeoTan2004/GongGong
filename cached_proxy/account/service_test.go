@@ -44,11 +44,11 @@ func TestServiceImpl_GetAccountByAccountID(t *testing.T) {
 	mockRepo := NewMockRepository()
 	service := &ServiceImpl{accountRepo: mockRepo}
 
-	account := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 	err := mockRepo.SaveOrUpdateAccount(account)
 	if err != nil {
@@ -60,7 +60,7 @@ func TestServiceImpl_GetAccountByAccountID(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if acc.AccountID() != "user1" {
-		t.Fatalf("expected accountID to be 'user1', got %v", acc.AccountID())
+		t.Fatalf("expected Username to be 'user1', got %v", acc.AccountID())
 	}
 }
 
@@ -68,11 +68,11 @@ func TestServiceImpl_GetAccountByToken(t *testing.T) {
 	mockRepo := NewMockRepository()
 	service := &ServiceImpl{accountRepo: mockRepo}
 
-	account := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 	err := mockRepo.SaveOrUpdateAccount(account)
 	if err != nil {
@@ -84,7 +84,7 @@ func TestServiceImpl_GetAccountByToken(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if acc.Token() != "token1" {
-		t.Fatalf("expected token to be 'token1', got %v", acc.Token())
+		t.Fatalf("expected StaticToken to be 'token1', got %v", acc.Token())
 	}
 }
 
@@ -92,11 +92,11 @@ func TestServiceImpl_Login(t *testing.T) {
 	mockRepo := NewMockRepository()
 	service := &ServiceImpl{accountRepo: mockRepo}
 
-	account := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 	err := mockRepo.SaveOrUpdateAccount(account)
 	if err != nil {
@@ -108,7 +108,7 @@ func TestServiceImpl_Login(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 	if token == "token1" {
-		t.Fatalf("expected new token except %v", token)
+		t.Fatalf("expected new StaticToken except %v", token)
 	}
 }
 
@@ -116,11 +116,11 @@ func TestServiceImpl_LockAccount(t *testing.T) {
 	mockRepo := NewMockRepository()
 	service := &ServiceImpl{accountRepo: mockRepo}
 
-	account := &simpleAccountImpl{
-		accountID: "user1",
-		token:     "token1",
-		password:  "password1",
-		status:    Normal,
+	account := &SimpleAccountImpl{
+		Username:    "user1",
+		StaticToken: "token1",
+		Password:    "password1",
+		status:      Normal,
 	}
 	err := mockRepo.SaveOrUpdateAccount(account)
 	if err != nil {

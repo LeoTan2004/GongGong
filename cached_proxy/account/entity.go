@@ -20,31 +20,37 @@ type Account interface {
 	Status() Status
 	// setStatus 设置账户的状态。
 	setStatus(status Status)
+	// GetPassword 获取账户的密码。
+	GetPassword() string
 }
 
-type simpleAccountImpl struct {
-	accountID string
-	token     string
-	password  string
-	status    Status
+type SimpleAccountImpl struct {
+	Username    string
+	StaticToken string
+	Password    string
+	status      Status
 }
 
-func (s *simpleAccountImpl) AccountID() string {
-	return s.accountID
+func (s *SimpleAccountImpl) GetPassword() string {
+	return s.Password
 }
 
-func (s *simpleAccountImpl) Token() string {
-	return s.token
+func (s *SimpleAccountImpl) AccountID() string {
+	return s.Username
 }
 
-func (s *simpleAccountImpl) Status() Status {
+func (s *SimpleAccountImpl) Token() string {
+	return s.StaticToken
+}
+
+func (s *SimpleAccountImpl) Status() Status {
 	return s.status
 }
 
-func (s *simpleAccountImpl) setStatus(status Status) {
+func (s *SimpleAccountImpl) setStatus(status Status) {
 	s.status = status
 }
 
-func (s *simpleAccountImpl) setToken(token string) {
-	s.token = token
+func (s *SimpleAccountImpl) setToken(token string) {
+	s.StaticToken = token
 }

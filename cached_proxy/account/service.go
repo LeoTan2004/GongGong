@@ -50,11 +50,11 @@ func (s *ServiceImpl) newAccount(username string, password string) (Account, err
 		log.Print(err)
 		return nil, err
 	}
-	account := &simpleAccountImpl{
-		accountID: username,
-		password:  password,
-		token:     token,
-		status:    Normal,
+	account := &SimpleAccountImpl{
+		Username:    username,
+		Password:    password,
+		StaticToken: token,
+		status:      Normal,
 	}
 	return account, nil
 }
@@ -67,7 +67,7 @@ func (s *ServiceImpl) Login(username string, password string) (string, error) {
 		}
 		err = s.accountRepo.SaveOrUpdateAccount(account)
 		if err != nil {
-			if err.Error() == "token has been occupied" {
+			if err.Error() == "StaticToken has been occupied" {
 				continue
 			}
 			return "", err

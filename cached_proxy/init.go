@@ -22,17 +22,28 @@ var (
 
 var (
 	// AccountRepository 是账户的数据仓库
-	AccountRepository = account.NewMemRepository()
+	AccountRepository = account.NewFileRepository("./_data")
 	// AccountService 是账户的服务
 	AccountService account.Service = account.NewServiceImpl(AccountRepository)
 )
+
+func init() {
+	// 从账户仓库中加载账户信息
+}
 
 // updateTask 是一个通用的更新任务， 用于更新学生信息， 同时也会根据返回的错误信息进行账户锁定
 func updateTask[V any](update func(*feign.Student) (*V, error)) func(string) (*V, bool) {
 	return func(studentID string) (*V, bool) {
 		student, err := StudentService.GetStudent(studentID)
 		if err != nil {
-			return nil, false
+			a, err := AccountService.GetAccountByAccountID(studentID)
+			if err != nil {
+				return nil, false
+			}
+			err = StudentService.SetStudent(a.AccountID(), a.GetPassword(), false)
+			if err != nil {
+				log.Printf("account %s is locked", studentID)
+			}
 		}
 		if student == nil {
 			return nil, false

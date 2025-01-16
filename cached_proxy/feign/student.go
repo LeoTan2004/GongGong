@@ -3,6 +3,7 @@ package feign
 import (
 	"fmt"
 	"strings"
+	"sync"
 )
 
 type Student interface {
@@ -39,6 +40,8 @@ type StudentImpl struct {
 	username     string
 	password     string
 	dynamicToken string // 动态token，可能遇到失效的问题，会重新申请
+	version      int    // 版本号，用于防止并发登陆问题
+	mu           sync.Mutex
 }
 
 func NewStudentImpl(username string, password string, client SpiderClient) (*StudentImpl, error) {
@@ -57,7 +60,15 @@ func (s *StudentImpl) Username() string {
 // refreshDynamicToken 刷新动态token
 func (s *StudentImpl) refreshDynamicToken(maxRetryTime int) (string, error) {
 	var finalError error
-
+	version := s.version
+	s.mu.Lock()
+	defer func() {
+		s.mu.Unlock()
+		s.version++
+	}()
+	if version != s.version {
+		return s.dynamicToken, nil
+	}
 	for i := 0; i < maxRetryTime; i++ {
 		response, err := s.spider.Login(s.username, s.password)
 		if err != nil {

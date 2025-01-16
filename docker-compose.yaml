@@ -20,6 +20,7 @@ services:
       - TZ=Asia/Shanghai
       - SPIDER_URL=http://api:8000
     volumes:
+      - ./gob:/app/_data
       - /etc/localtime:/etc/localtime:ro  # 设置时区
       - /etc/timezone:/etc/timezone:ro # 设置时区
   #  反馈服务

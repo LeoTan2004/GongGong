@@ -11,7 +11,7 @@ type StudentService interface {
 	GetStudent(username string) (*Student, error)
 
 	// SetStudent 设置学生账户，如果该账户未通过验证，则返回错误
-	SetStudent(username string, password string) error
+	SetStudent(username string, password string, verify bool) error
 }
 
 type StudentServiceImpl struct {
@@ -36,15 +36,21 @@ func (s *StudentServiceImpl) GetStudent(username string) (*Student, error) {
 	return student, nil
 }
 
-func (s *StudentServiceImpl) SetStudent(username string, password string) error {
+func (s *StudentServiceImpl) SetStudent(username string, password string, verify bool) error {
 	username = strings.TrimSpace(username)
 	password = strings.TrimSpace(password)
 	if username == "" || password == "" {
 		return fmt.Errorf("invalid username or password")
 	}
-	student, err := s.client.NewStudent(username, password)
-	if err != nil {
-		return err
+	var student Student
+	var err error
+	if verify {
+		student = &StudentImpl{username: username, password: password, spider: s.client}
+	} else {
+		student, err = s.client.NewStudent(username, password)
+		if err != nil {
+			return err
+		}
 	}
 	s.repo.Set(username, &student)
 	return nil
