@@ -20,7 +20,7 @@ services:
       - TZ=Asia/Shanghai
       - SPIDER_URL=http://api:8000
     volumes:
-      - ./gob:/app/_data
+      - proxy_files:/app/_data
       - /etc/localtime:/etc/localtime:ro  # 设置时区
       - /etc/timezone:/etc/timezone:ro # 设置时区
   #  反馈服务
@@ -38,4 +38,6 @@ volumes:
   api-logs:
 
   feedback_files:
+
+  proxy_files:
 
