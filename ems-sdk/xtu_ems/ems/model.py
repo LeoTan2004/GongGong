@@ -234,7 +234,6 @@ class ClassroomBoard(BaseModel):
                     ret.classrooms.setdefault(classroom_prefix_category[prefix], []).append(classroom)
                     # 将教室名称中的前缀去除
                     classroom.name = classroom.name[len(prefix):]
-                    classroom.name = classroom.name[len(prefix):]
                     break
             else:
                 ret.classrooms.setdefault('其他', []).append(classroom)

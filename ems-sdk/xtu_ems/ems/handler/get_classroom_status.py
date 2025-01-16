@@ -20,7 +20,7 @@ class TodayClassroomStatusGetter(EMSPoster[CategoryClassroomBoard]):
 
     def _extra_classroom_info(self, row: BeautifulSoup) -> ClassroomStatus:
         """从表格的某一行中提取教室的信息"""
-        tds = row.find_all('td')
+        tds = row.find_all('td')[:6]
         status = [td.text.strip() for td in tds[1:]]
         return ClassroomStatus(name=tds[0].text.strip(), status=status)
 
