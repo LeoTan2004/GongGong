@@ -141,14 +141,14 @@ func (c *InfoGetter[V]) GetInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 var (
-	CalendarHandler          = &InfoGetter[any]{info: CalendarService}
-	TodayClassroomHandler    = &InfoGetter[any]{info: TodayClassroomService}
-	TomorrowClassroomHandler = &InfoGetter[any]{info: TomorrowClassroomService}
-	InfoHandler              = &InfoGetter[any]{info: StudentInfoService}
-	MajorScoreHandler        = &InfoGetter[any]{info: StudentMajorScoreService}
-	MinorScoreHandler        = &InfoGetter[any]{info: StudentMinorScoreService}
-	TotalRankHandler         = &InfoGetter[any]{info: StudentTotalRankService}
-	RequiredRankHandler      = &InfoGetter[any]{info: StudentRequiredRankService}
-	ExamHandler              = &InfoGetter[any]{info: StudentExamService}
-	CourseHandler            = &InfoGetter[any]{info: StudentCourseService}
+	CalendarHandler          = &InfoGetter[feign.TeachingCalendar]{info: CalendarService}
+	TodayClassroomHandler    = &InfoGetter[feign.ClassroomStatusTable]{info: TodayClassroomService}
+	TomorrowClassroomHandler = &InfoGetter[feign.ClassroomStatusTable]{info: TomorrowClassroomService}
+	InfoHandler              = &InfoGetter[feign.StudentInfo]{info: StudentInfoService}
+	MajorScoreHandler        = &InfoGetter[feign.ScoreBoard]{info: StudentMajorScoreService}
+	MinorScoreHandler        = &InfoGetter[feign.ScoreBoard]{info: StudentMinorScoreService}
+	TotalRankHandler         = &InfoGetter[feign.Rank]{info: StudentTotalRankService}
+	RequiredRankHandler      = &InfoGetter[feign.Rank]{info: StudentRequiredRankService}
+	ExamHandler              = &InfoGetter[feign.ExamList]{info: StudentExamService}
+	CourseHandler            = &InfoGetter[feign.CourseList]{info: StudentCourseService}
 )

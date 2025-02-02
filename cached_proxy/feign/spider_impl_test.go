@@ -159,7 +159,7 @@ func TestSpiderClient_getWithToken(t *testing.T) {
 
 			client := NewSpiderClientImpl(server.URL, http.Client{})
 
-			response, err := client.getWithToken("/test-uri", tt.token)
+			response, err := getWithToken[any](client, "/test-uri", tt.token)
 
 			if (err != nil) != tt.expectedError {
 				t.Fatalf("Expected error: %v, got: %v", tt.expectedError, err)
@@ -245,14 +245,14 @@ func TestSpiderClientImplIntegrate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 		resp, err = client.GetClassroomStatus(validToken, 1)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 	})
@@ -273,7 +273,7 @@ func TestSpiderClientImplIntegrate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 	})
@@ -290,7 +290,7 @@ func TestSpiderClientImplIntegrate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 	})
@@ -307,7 +307,7 @@ func TestSpiderClientImplIntegrate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 	})
@@ -324,7 +324,7 @@ func TestSpiderClientImplIntegrate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 	})
@@ -341,14 +341,14 @@ func TestSpiderClientImplIntegrate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 		resp, err = client.GetStudentRank(validToken, true)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 
@@ -370,14 +370,14 @@ func TestSpiderClientImplIntegrate(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 		resp, err = client.GetStudentScore(validToken, true)
 		if err != nil {
 			t.Fatalf("Expected error: %v, got: %v", nil, err)
 		}
-		if resp == "" {
+		if resp == nil {
 			t.Fatalf("Expected data is not nil, but got: %v", resp)
 		}
 

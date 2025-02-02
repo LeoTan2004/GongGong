@@ -96,23 +96,23 @@ func (c *SpiderClientImpl) sendRequest(r *http.Request) (*http.Response, error) 
 }
 
 // decodeResponse 解码统一返回
-func (c *SpiderClientImpl) decodeResponse(response *http.Response) (CommonResponse[any], error) {
+func decodeResponse[V any](response *http.Response) (CommonResponse[V], error) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
 			log.Printf("返回解析失败: %v", err)
 		}
 	}(response.Body)
-	var result CommonResponse[any]
+	var result CommonResponse[V]
 	if err := json.NewDecoder(response.Body).Decode(&result); err != nil {
 		fmt.Println("返回体 JSON 解码失败：", err)
-		return CommonResponse[any]{}, err
+		return CommonResponse[V]{}, err
 	}
 	return result, nil
 }
 
 // getWithToken 发送头部携带token的get请求
-func (c *SpiderClientImpl) getWithToken(uri string, token string) (*CommonResponse[any], error) {
+func getWithToken[V any](c *SpiderClientImpl, uri string, token string) (*CommonResponse[V], error) {
 	// 构建请求
 	request, err := c.buildRequest("GET", uri, token, nil)
 	if err != nil {
@@ -124,7 +124,7 @@ func (c *SpiderClientImpl) getWithToken(uri string, token string) (*CommonRespon
 		return nil, err
 	}
 	// 解析返回
-	commonResponse, err := c.decodeResponse(response)
+	commonResponse, err := decodeResponse[V](response)
 	if err != nil {
 		return nil, err
 	}
@@ -134,45 +134,45 @@ func (c *SpiderClientImpl) getWithToken(uri string, token string) (*CommonRespon
 	return &commonResponse, nil
 }
 
-func (c *SpiderClientImpl) GetTeachingCalendar(token string) (any, error) {
-	commonResponse, err := c.getWithToken("/calendar", token)
+func (c *SpiderClientImpl) GetTeachingCalendar(token string) (*TeachingCalendar, error) {
+	commonResponse, err := getWithToken[TeachingCalendar](c, "/calendar", token)
 	if err != nil {
 		return nil, err
 	}
-	return commonResponse.Data, nil
+	return &commonResponse.Data, nil
 }
 
-func (c *SpiderClientImpl) GetClassroomStatus(token string, day int) (any, error) {
+func (c *SpiderClientImpl) GetClassroomStatus(token string, day int) (*ClassroomStatusTable, error) {
 	uri := fmt.Sprintf("/classroom/%d", day)
-	commonResponse, err := c.getWithToken(uri, token)
+	commonResponse, err := getWithToken[ClassroomStatusTable](c, uri, token)
 	if err != nil {
 		return nil, err
 	}
-	return commonResponse.Data, nil
+	return &commonResponse.Data, nil
 }
 
-func (c *SpiderClientImpl) GetStudentCourses(token string) (any, error) {
-	commonResponse, err := c.getWithToken("/courses", token)
+func (c *SpiderClientImpl) GetStudentCourses(token string) (*CourseList, error) {
+	commonResponse, err := getWithToken[CourseList](c, "/courses", token)
 	if err != nil {
 		return nil, err
 	}
-	return commonResponse.Data, nil
+	return &commonResponse.Data, nil
 }
 
-func (c *SpiderClientImpl) GetStudentExams(token string) (any, error) {
-	commonResponse, err := c.getWithToken("/exams", token)
+func (c *SpiderClientImpl) GetStudentExams(token string) (*ExamList, error) {
+	commonResponse, err := getWithToken[ExamList](c, "/exams", token)
 	if err != nil {
 		return nil, err
 	}
-	return commonResponse.Data, nil
+	return &commonResponse.Data, nil
 }
 
-func (c *SpiderClientImpl) GetStudentInfo(token string) (any, error) {
-	commonResponse, err := c.getWithToken("/info", token)
+func (c *SpiderClientImpl) GetStudentInfo(token string) (*StudentInfo, error) {
+	commonResponse, err := getWithToken[StudentInfo](c, "/info", token)
 	if err != nil {
 		return nil, err
 	}
-	return commonResponse.Data, nil
+	return &commonResponse.Data, nil
 }
 
 func (c *SpiderClientImpl) Login(username string, password string) (LoginResponse, error) {
@@ -185,51 +185,39 @@ func (c *SpiderClientImpl) Login(username string, password string) (LoginRespons
 		log.Printf("请求失败: %v", err)
 		return LoginResponse{}, err
 	}
-	commonResponse, err := c.decodeResponse(response)
+	loginResponse, err := decodeResponse[LoginResponse](response)
 	if err != nil {
 		return LoginResponse{}, err
 	}
-	// 解析数据
-	dataMap, ok := commonResponse.Data.(map[string]interface{})
-	if !ok {
-		return LoginResponse{}, fmt.Errorf("解析返回数据失败: %v", commonResponse.Data)
-	}
-
-	// 转换为 LoginResponse
-	token, ok := dataMap["token"].(string)
-	if !ok {
-		return LoginResponse{}, fmt.Errorf("返回数据中缺少 token")
-	}
-
-	return LoginResponse{Token: token}, nil
+	return loginResponse.Data, nil
 }
 
-func (c *SpiderClientImpl) GetStudentScore(token string, isMajor bool) (any, error) {
-	var commonResponse *CommonResponse[any]
+func (c *SpiderClientImpl) GetStudentScore(token string, isMajor bool) (*ScoreBoard, error) {
+	var commonResponse *CommonResponse[ScoreBoard]
 	var err error
 	if isMajor {
-		commonResponse, err = c.getWithToken("/scores", token)
+		commonResponse, err = getWithToken[ScoreBoard](c, "/scores", token)
 	} else {
-		commonResponse, err = c.getWithToken("/minor/scores", token)
+		commonResponse, err = getWithToken[ScoreBoard](c, "/minor/scores", token)
 	}
 	if err != nil {
 		return nil, err
 	}
-	return commonResponse.Data, nil
+	return &commonResponse.Data, nil
 }
 
-func (c *SpiderClientImpl) GetStudentRank(token string, onlyRequired bool) (any, error) {
-	var commonResponse *CommonResponse[any]
+func (c *SpiderClientImpl) GetStudentRank(token string, onlyRequired bool) (*Rank, error) {
+	var commonResponse *CommonResponse[Rank]
 	var err error
 	if onlyRequired {
-		commonResponse, err = c.getWithToken("/compulsory/rank", token)
+		commonResponse, err = getWithToken[Rank](c, "/compulsory/rank", token)
 	} else {
-		commonResponse, err = c.getWithToken("/rank", token)
+		commonResponse, err = getWithToken[Rank](c, "/rank", token)
 	}
 	if err != nil {
 		return nil, err
 	}
-	return commonResponse.Data, nil
+	return &commonResponse.Data, nil
 }
 
 // NewStudent 创建一个新的学生账户。

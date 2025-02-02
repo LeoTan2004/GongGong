@@ -11,28 +11,28 @@ type Student interface {
 	Username() string
 
 	// GetTeachingCalendar 获取当前学期的教学日历。
-	GetTeachingCalendar() (any, error)
+	GetTeachingCalendar() (*TeachingCalendar, error)
 
 	// GetClassroomStatus 获取指定日期的教室考试状态。
 	// day: 要查询的具体日期（例如，0 表示今天，-1 表示昨天）。
-	GetClassroomStatus(day int) (any, error)
+	GetClassroomStatus(day int) (*ClassroomStatusTable, error)
 
 	// GetStudentCourses 获取已认证学生的课程信息。
-	GetStudentCourses() (any, error)
+	GetStudentCourses() (*CourseList, error)
 
 	// GetStudentExams 获取已认证学生的考试安排。
-	GetStudentExams() (any, error)
+	GetStudentExams() (*ExamList, error)
 
 	// GetInfo 获取已认证学生的个人信息。
-	GetInfo() (any, error)
+	GetInfo() (*StudentInfo, error)
 
 	// GetStudentScore 获取已认证学生的成绩信息。
 	// isMajor: 是否仅获取主修相关的成绩。
-	GetStudentScore(isMajor bool) (any, error)
+	GetStudentScore(isMajor bool) (*ScoreBoard, error)
 
 	// GetStudentRank 获取已认证学生的排名信息。
 	// onlyRequired: 是否仅包括必修课程的排名计算。
-	GetStudentRank(onlyRequired bool) (any, error)
+	GetStudentRank(onlyRequired bool) (*Rank, error)
 }
 
 type StudentImpl struct {
@@ -87,7 +87,7 @@ func (s *StudentImpl) refreshDynamicToken(maxRetryTime int) (string, error) {
 	return "", finalError
 }
 
-func (s *StudentImpl) doGetter(function func(token string) (any, error)) (any, error) {
+func doGetter[V any](s *StudentImpl, function func(token string) (*V, error)) (*V, error) {
 	var finalErr error
 	maxRetryTimes := 3
 	// 如果token为空，那么刷新token
@@ -127,36 +127,36 @@ func (s *StudentImpl) doGetter(function func(token string) (any, error)) (any, e
 	return nil, fmt.Errorf("exceeded retry attempts: %v", finalErr)
 }
 
-func (s *StudentImpl) GetTeachingCalendar() (any, error) {
-	return s.doGetter(s.spider.GetTeachingCalendar)
+func (s *StudentImpl) GetTeachingCalendar() (*TeachingCalendar, error) {
+	return doGetter(s, s.spider.GetTeachingCalendar)
 }
 
-func (s *StudentImpl) GetClassroomStatus(day int) (any, error) {
-	return s.doGetter(func(token string) (any, error) {
+func (s *StudentImpl) GetClassroomStatus(day int) (*ClassroomStatusTable, error) {
+	return doGetter(s, func(token string) (*ClassroomStatusTable, error) {
 		return s.spider.GetClassroomStatus(token, day)
 	})
 }
 
-func (s *StudentImpl) GetStudentCourses() (any, error) {
-	return s.doGetter(s.spider.GetStudentCourses)
+func (s *StudentImpl) GetStudentCourses() (*CourseList, error) {
+	return doGetter(s, s.spider.GetStudentCourses)
 }
 
-func (s *StudentImpl) GetStudentExams() (any, error) {
-	return s.doGetter(s.spider.GetStudentExams)
+func (s *StudentImpl) GetStudentExams() (*ExamList, error) {
+	return doGetter(s, s.spider.GetStudentExams)
 }
 
-func (s *StudentImpl) GetInfo() (any, error) {
-	return s.doGetter(s.spider.GetStudentInfo)
+func (s *StudentImpl) GetInfo() (*StudentInfo, error) {
+	return doGetter(s, s.spider.GetStudentInfo)
 }
 
-func (s *StudentImpl) GetStudentScore(isMajor bool) (any, error) {
-	return s.doGetter(func(token string) (any, error) {
+func (s *StudentImpl) GetStudentScore(isMajor bool) (*ScoreBoard, error) {
+	return doGetter(s, func(token string) (*ScoreBoard, error) {
 		return s.spider.GetStudentScore(token, isMajor)
 	})
 }
 
-func (s *StudentImpl) GetStudentRank(onlyRequired bool) (any, error) {
-	return s.doGetter(func(token string) (any, error) {
+func (s *StudentImpl) GetStudentRank(onlyRequired bool) (*Rank, error) {
+	return doGetter(s, func(token string) (*Rank, error) {
 		return s.spider.GetStudentRank(token, onlyRequired)
 	})
 }

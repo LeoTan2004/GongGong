@@ -59,80 +59,78 @@ func updateTask[V any](update func(*feign.Student) (*V, error)) func(string) (*V
 }
 
 var (
-	PublicChecker    = cache.NewDailyStatusChecker[any](30 * time.Second)
-	ClassroomChecker = PublicChecker
-	CalendarChecker  = PublicChecker
+	ClassroomChecker = cache.NewDailyStatusChecker[feign.ClassroomStatusTable](30 * time.Second)
+	CalendarChecker  = cache.NewDailyStatusChecker[feign.TeachingCalendar](30 * time.Second)
 )
 
 var (
-	PersonalChecker = cache.NewIntervalStatusChecker[any](2*time.Hour, 30*time.Second)
-	InfoChecker     = PersonalChecker
-	ScoreChecker    = PersonalChecker
-	RankChecker     = PersonalChecker
-	ExamChecker     = PersonalChecker
-	CourseChecker   = PersonalChecker
+	InfoChecker   = cache.NewIntervalStatusChecker[feign.StudentInfo](2*time.Hour, 30*time.Second)
+	ScoreChecker  = cache.NewIntervalStatusChecker[feign.ScoreBoard](2*time.Hour, 30*time.Second)
+	RankChecker   = cache.NewIntervalStatusChecker[feign.Rank](2*time.Hour, 30*time.Second)
+	ExamChecker   = cache.NewIntervalStatusChecker[feign.ExamList](2*time.Hour, 30*time.Second)
+	CourseChecker = cache.NewIntervalStatusChecker[feign.CourseList](2*time.Hour, 30*time.Second)
 )
 
 var (
-	TodayClassroomUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	TodayClassroomUpdater = updateTask[feign.ClassroomStatusTable](func(student *feign.Student) (*feign.ClassroomStatusTable, error) {
 		value, err := (*student).GetClassroomStatus(0)
-		return &value, err
+		return value, err
 	})
-	TomorrowClassroomUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	TomorrowClassroomUpdater = updateTask[feign.ClassroomStatusTable](func(student *feign.Student) (*feign.ClassroomStatusTable, error) {
 		value, err := (*student).GetClassroomStatus(1)
-		return &value, err
+		return value, err
 	})
-	CalendarUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	CalendarUpdater = updateTask[feign.TeachingCalendar](func(student *feign.Student) (*feign.TeachingCalendar, error) {
 		value, err := (*student).GetTeachingCalendar()
-		return &value, err
+		return value, err
 	})
 )
 
 var (
-	StudentInfoUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	StudentInfoUpdater = updateTask[feign.StudentInfo](func(student *feign.Student) (*feign.StudentInfo, error) {
 		value, err := (*student).GetInfo()
-		return &value, err
+		return value, err
 	})
-	StudentMajorScoreUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	StudentMajorScoreUpdater = updateTask[feign.ScoreBoard](func(student *feign.Student) (*feign.ScoreBoard, error) {
 		value, err := (*student).GetStudentScore(true)
-		return &value, err
+		return value, err
 	})
-	StudentMinorScoreUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	StudentMinorScoreUpdater = updateTask[feign.ScoreBoard](func(student *feign.Student) (*feign.ScoreBoard, error) {
 		value, err := (*student).GetStudentScore(false)
-		return &value, err
+		return value, err
 	})
-	StudentTotalRankUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	StudentTotalRankUpdater = updateTask[feign.Rank](func(student *feign.Student) (*feign.Rank, error) {
 		value, err := (*student).GetStudentRank(false)
-		return &value, err
+		return value, err
 	})
-	StudentRequiredRankUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	StudentRequiredRankUpdater = updateTask[feign.Rank](func(student *feign.Student) (*feign.Rank, error) {
 		value, err := (*student).GetStudentRank(true)
-		return &value, err
+		return value, err
 	})
-	StudentExamUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	StudentExamUpdater = updateTask[feign.ExamList](func(student *feign.Student) (*feign.ExamList, error) {
 		value, err := (*student).GetStudentExams()
-		return &value, err
+		return value, err
 	})
-	StudentCourseUpdater = updateTask[any](func(student *feign.Student) (*any, error) {
+	StudentCourseUpdater = updateTask[feign.CourseList](func(student *feign.Student) (*feign.CourseList, error) {
 		value, err := (*student).GetStudentCourses()
-		return &value, err
+		return value, err
 	})
 )
 
 var exec = executor.NewWorkerPool(10)
 
 var (
-	TodayClassroomService    = cache.NewPublicInformationService[any](exec, ClassroomChecker, TodayClassroomUpdater)
-	TomorrowClassroomService = cache.NewPublicInformationService[any](exec, ClassroomChecker, TomorrowClassroomUpdater)
-	CalendarService          = cache.NewPublicInformationService[any](exec, CalendarChecker, CalendarUpdater)
+	TodayClassroomService    = cache.NewPublicInformationService[feign.ClassroomStatusTable](exec, ClassroomChecker, TodayClassroomUpdater)
+	TomorrowClassroomService = cache.NewPublicInformationService[feign.ClassroomStatusTable](exec, ClassroomChecker, TomorrowClassroomUpdater)
+	CalendarService          = cache.NewPublicInformationService[feign.TeachingCalendar](exec, CalendarChecker, CalendarUpdater)
 )
 
 var (
-	StudentInfoService         = cache.NewPersonalInformationService[any](exec, InfoChecker, StudentInfoUpdater)
-	StudentMajorScoreService   = cache.NewPersonalInformationService[any](exec, ScoreChecker, StudentMajorScoreUpdater)
-	StudentMinorScoreService   = cache.NewPersonalInformationService[any](exec, ScoreChecker, StudentMinorScoreUpdater)
-	StudentTotalRankService    = cache.NewPersonalInformationService[any](exec, RankChecker, StudentTotalRankUpdater)
-	StudentRequiredRankService = cache.NewPersonalInformationService[any](exec, RankChecker, StudentRequiredRankUpdater)
-	StudentExamService         = cache.NewPersonalInformationService[any](exec, ExamChecker, StudentExamUpdater)
-	StudentCourseService       = cache.NewPersonalInformationService[any](exec, CourseChecker, StudentCourseUpdater)
+	StudentInfoService         = cache.NewPersonalInformationService[feign.StudentInfo](exec, InfoChecker, StudentInfoUpdater)
+	StudentMajorScoreService   = cache.NewPersonalInformationService[feign.ScoreBoard](exec, ScoreChecker, StudentMajorScoreUpdater)
+	StudentMinorScoreService   = cache.NewPersonalInformationService[feign.ScoreBoard](exec, ScoreChecker, StudentMinorScoreUpdater)
+	StudentTotalRankService    = cache.NewPersonalInformationService[feign.Rank](exec, RankChecker, StudentTotalRankUpdater)
+	StudentRequiredRankService = cache.NewPersonalInformationService[feign.Rank](exec, RankChecker, StudentRequiredRankUpdater)
+	StudentExamService         = cache.NewPersonalInformationService[feign.ExamList](exec, ExamChecker, StudentExamUpdater)
+	StudentCourseService       = cache.NewPersonalInformationService[feign.CourseList](exec, CourseChecker, StudentCourseUpdater)
 )
