@@ -14,6 +14,45 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
+func Whoami(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Whoami %s\n", r.RequestURI)
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	token := r.Header.Get("token")
+	if token == "" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	account, err := AccountService.GetAccountByToken(token)
+	if err != nil {
+		if err.Error() == "account not found" {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		} else {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		}
+		return
+	}
+	if account == nil || account.Status() != account2.Normal {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+	resp := feign.CommonResponse[map[string]string]{
+		Code:    1,
+		Message: "success",
+		Data: map[string]string{
+			"username": account.AccountID(),
+		},
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+}
+
 func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)

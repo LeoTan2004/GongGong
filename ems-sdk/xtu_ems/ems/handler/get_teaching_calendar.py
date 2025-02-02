@@ -16,7 +16,7 @@ class TeachingCalendarGetter(EMSPoster[TeachingCalendar]):
 
     def _extra_info(self, soup: BeautifulSoup):
         term_id = soup.find(id='xnxq01id').find('option')
-        start_year = int(term_id.text.split('-')[0])
+        start_year = int(term_id.text.split('-')[0]) - 1 + int(term_id.text.split('-')[2])
         table = soup.find(id='kbtable')
         start_month = 1
         for td in table.find_all('td'):
