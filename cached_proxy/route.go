@@ -214,6 +214,39 @@ var (
 	CourseAlarm = icalendar.NewIcsAlarm("DISPLAY", 25*time.Minute, "距离上课仅剩25分钟")
 )
 
+const ExamTimeLayout = "2006-01-02 15:04:05"
+
+func ExamsConvertCalendar(exams *feign.ExamList, calendar *feign.TeachingCalendar) icalendar.Calendar {
+	if exams == nil || exams.Exams == nil {
+		return nil
+	}
+	ical := &icalendar.IcsCalendar{}
+	ical.SetTimezone(icalendar.GetDefaultTimezone())
+	for _, exam := range exams.Exams {
+		if exam.StartTime == "" {
+			continue
+		}
+		event := &icalendar.IcsEvent{}
+		var startTime, endTime time.Time
+		var err error
+		if startTime, err = time.Parse(ExamTimeLayout, exam.StartTime); err != nil {
+			continue
+		}
+		if endTime, err = time.Parse(ExamTimeLayout, exam.EndTime); err != nil {
+			endTime = startTime
+		}
+		location := &icalendar.IcsLocation{}
+		location.SetName(exam.Location)
+		event.SetSummary(fmt.Sprintf("【考试】%s", exam.Name))
+		event.SetLocation(location)
+		event.SetDescription(fmt.Sprintf("【%s】%s", exam.Name, exam.Location))
+		event.SetStart(startTime)
+		event.SetEnd(endTime)
+		ical.AddEvent(event)
+	}
+	return ical
+}
+
 func CoursesConvertCalendar(list *feign.CourseList, calendar *feign.TeachingCalendar) icalendar.Calendar {
 	if list == nil || list.Courses == nil || calendar == nil {
 		return nil
@@ -267,7 +300,7 @@ func CoursesConvertCalendar(list *feign.CourseList, calendar *feign.TeachingCale
 }
 
 func convertCourseToEvent(course feign.Course, calendar *feign.TeachingCalendar, start int, end int, timetable feign.TimeTable) *icalendar.IcsEvent {
-	summary := course.Name
+	summary := fmt.Sprintf("【课程】%s", course.Name)
 	desc := fmt.Sprintf("【%s】%d节课", course.Teacher, course.Duration)
 	location := &icalendar.IcsLocation{}
 	location.SetName(course.Classroom)

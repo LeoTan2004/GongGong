@@ -51,3 +51,43 @@ func TestCoursesConvertCalendar(t *testing.T) {
 		})
 	}
 }
+
+func TestExamsConvertCalendar(t *testing.T) {
+	type args struct {
+		exams    *feign.ExamList
+		calendar *feign.TeachingCalendar
+	}
+	tests := []struct {
+		name  string
+		args  args
+		judge func(calendar icalendar.Calendar) bool
+	}{
+		{
+			name: "Test ExamsConvertCalendar",
+			args: args{
+				exams: &feign.ExamList{
+					Exams: []feign.Examination{
+						{
+							Name:      "Test",
+							StartTime: "2025-02-17 16:30:00",
+							EndTime:   "2025-02-17 18:00:00",
+							Location:  "Test",
+							Type:      "考查",
+						},
+					},
+				},
+				calendar: nil,
+			},
+			judge: func(calendar icalendar.Calendar) bool {
+				return calendar != nil && calendar.ToIcs(nil) != ""
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := ExamsConvertCalendar(tt.args.exams, tt.args.calendar); !tt.judge(got) {
+				t.Errorf("ExamsConvertCalendar() = %v", got)
+			}
+		})
+	}
+}
