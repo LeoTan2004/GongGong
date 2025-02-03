@@ -1,5 +1,7 @@
 package feign
 
+import "time"
+
 type CommonResponse[dataType any] struct {
 	Code    int      `json:"code"`
 	Message string   `json:"message"`
@@ -10,22 +12,32 @@ type LoginResponse struct {
 	Token string `json:"token"`
 }
 
+type Course struct {
+	Name      string `json:"name"`
+	Teacher   string `json:"teacher"`
+	Classroom string `json:"classroom"`
+	Weeks     string `json:"weeks"`
+	StartTime int    `json:"start_time"`
+	Duration  int    `json:"duration"`
+	Day       string `json:"day"`
+}
+
 type CourseList struct {
-	Courses []struct {
-		Name      string `json:"name"`
-		Teacher   string `json:"teacher"`
-		Classroom string `json:"classroom"`
-		Weeks     string `json:"weeks"`
-		StartTime int    `json:"start_time"`
-		Duration  int    `json:"duration"`
-		Day       string `json:"day"`
-	} `json:"courses"`
+	Courses []Course `json:"courses"`
 }
 
 type TeachingCalendar struct {
-	Start  string `json:"start"`
-	Weeks  int    `json:"weeks"`
-	TermId string `json:"term_id"`
+	Start     string `json:"start"`
+	Weeks     int    `json:"weeks"`
+	TermId    string `json:"term_id"`
+	startTime time.Time
+}
+
+func (t *TeachingCalendar) StartTime() time.Time {
+	if t.startTime.IsZero() {
+		t.startTime, _ = time.Parse("2006-01-02", t.Start)
+	}
+	return t.startTime
 }
 
 type ClassroomStatus struct {

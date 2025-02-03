@@ -13,6 +13,20 @@ type IcsTimezone struct {
 	name       string
 }
 
+var (
+	defaultTimezone = IcsTimezone{
+		id:         "Asia/Shanghai",
+		offsetFrom: 8,
+		offsetTo:   8,
+		start:      time.Date(1970, 1, 1, 0, 0, 0, 0, time.UTC),
+		name:       "Asia/Shanghai",
+	}
+)
+
+func GetDefaultTimezone() *IcsTimezone {
+	return &defaultTimezone
+}
+
 func (tz *IcsTimezone) ToIcs(_ *Timezone) string {
 	result := strings.Builder{}
 	result.WriteString("BEGIN:VTIMEZONE\n")
