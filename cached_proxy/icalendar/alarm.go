@@ -11,6 +11,10 @@ type IcsAlarm struct {
 	description string
 }
 
+func NewIcsAlarm(action string, trigger time.Duration, description string) *IcsAlarm {
+	return &IcsAlarm{action: action, trigger: trigger, description: description}
+}
+
 func (a *IcsAlarm) ToIcs(_ *Timezone) string {
 	result := strings.Builder{}
 	result.WriteString("BEGIN:VALARM\n")

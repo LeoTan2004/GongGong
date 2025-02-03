@@ -16,7 +16,7 @@ func TestTeachingCalendar_GetTermTimeTable(t1 *testing.T) {
 	tests := []struct {
 		name   string
 		fields fields
-		want   *TermTimeTable
+		want   TermTimeTable
 	}{
 		{
 			name: "Test Term 1",
@@ -25,10 +25,10 @@ func TestTeachingCalendar_GetTermTimeTable(t1 *testing.T) {
 				Weeks:  18,
 				TermId: "2024-2025-2",
 			},
-			want: &TermTimeTable{
-				sepWeeks:     12,
-				preTimeTable: &WinterTimeTable,
-				sufTimeTable: &SummerTimeTable,
+			want: TermTimeTable{
+				SepWeeks:     12,
+				PreTimeTable: WinterTimeTable,
+				SufTimeTable: SummerTimeTable,
 			},
 		},
 	}

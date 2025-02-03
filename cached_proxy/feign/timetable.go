@@ -11,7 +11,7 @@ type EventTimes struct {
 }
 
 type TimeTable struct {
-	times []EventTimes
+	Times []EventTimes
 }
 
 var (
@@ -19,7 +19,7 @@ var (
 	summerStart     = time.Date(0, 5, 1, 0, 0, 0, 0, zone)
 	summerEnd       = time.Date(0, 10, 1, 0, 0, 0, 0, zone)
 	SummerTimeTable = TimeTable{
-		times: []EventTimes{
+		Times: []EventTimes{
 			{
 				StartTime: time.Date(0, 0, 0, 8, 0, 0, 0, zone),
 				EndTime:   time.Date(0, 0, 0, 8, 45, 0, 0, zone),
@@ -61,7 +61,7 @@ var (
 		},
 	}
 	WinterTimeTable = TimeTable{
-		times: []EventTimes{
+		Times: []EventTimes{
 			{
 				StartTime: time.Date(0, 0, 0, 8, 0, 0, 0, zone),
 				EndTime:   time.Date(0, 0, 0, 8, 45, 0, 0, zone),
@@ -105,25 +105,25 @@ var (
 )
 
 type TermTimeTable struct {
-	sepWeeks     int
-	preTimeTable *TimeTable
-	sufTimeTable *TimeTable
+	SepWeeks     int
+	PreTimeTable TimeTable
+	SufTimeTable TimeTable
 }
 
-func (t *TeachingCalendar) GetTermTimeTable() *TermTimeTable {
+func (t *TeachingCalendar) GetTermTimeTable() TermTimeTable {
 	sepTime := summerEnd
-	termTimeTable := &TermTimeTable{
-		preTimeTable: &SummerTimeTable,
-		sufTimeTable: &WinterTimeTable,
+	termTimeTable := TermTimeTable{
+		PreTimeTable: SummerTimeTable,
+		SufTimeTable: WinterTimeTable,
 	}
 	startTime := t.StartTime()
 	if startTime.Month() < sepTime.Month() {
 		sepTime = summerStart
-		termTimeTable.preTimeTable = &WinterTimeTable
-		termTimeTable.sufTimeTable = &SummerTimeTable
+		termTimeTable.PreTimeTable = WinterTimeTable
+		termTimeTable.SufTimeTable = SummerTimeTable
 	}
 	sepTime = time.Date(startTime.Year(), sepTime.Month(), sepTime.Day(), 0, 0, 0, 0, zone)
 	sepWeeks := int(math.Ceil((sepTime.Sub(startTime).Hours())/(24*7))) + 1
-	termTimeTable.sepWeeks = sepWeeks
+	termTimeTable.SepWeeks = sepWeeks
 	return termTimeTable
 }
