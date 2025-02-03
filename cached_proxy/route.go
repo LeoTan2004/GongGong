@@ -178,6 +178,19 @@ type CalendarGetter[V any] struct {
 	convertFunc     func(*V, *feign.TeachingCalendar) icalendar.Calendar
 }
 
+var (
+	ExamCalendarHandler = CalendarGetter[feign.ExamList]{
+		info:            StudentExamService,
+		calendarService: CalendarService,
+		convertFunc:     ExamsConvertCalendar,
+	}
+	CoursesCalendarHandler = CalendarGetter[feign.CourseList]{
+		info:            StudentCourseService,
+		calendarService: CalendarService,
+		convertFunc:     CoursesConvertCalendar,
+	}
+)
+
 func (c *CalendarGetter[V]) GetInfo(w http.ResponseWriter, r *http.Request) {
 	log.Printf("GetInfo %s\n", r.RequestURI)
 	if r.Method != http.MethodGet {
@@ -202,8 +215,8 @@ func (c *CalendarGetter[V]) GetInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ics := resp.ToIcs(nil)
-	w.Header().Set("Content-Type", "text/calendar")
-	_, err = w.Write([]byte(ics))
+	w.Header().Set("Content-Type", "text/calendar; charset=utf-8")
+	_, err = fmt.Fprint(w, ics)
 	if err != nil {
 		return
 	}
@@ -216,7 +229,7 @@ var (
 
 const ExamTimeLayout = "2006-01-02 15:04:05"
 
-func ExamsConvertCalendar(exams *feign.ExamList, calendar *feign.TeachingCalendar) icalendar.Calendar {
+func ExamsConvertCalendar(exams *feign.ExamList, _ *feign.TeachingCalendar) icalendar.Calendar {
 	if exams == nil || exams.Exams == nil {
 		return nil
 	}
