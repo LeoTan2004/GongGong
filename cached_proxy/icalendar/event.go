@@ -13,6 +13,7 @@ type IcsEvent struct {
 	end         time.Time
 	alarms      []Alarm
 	repeatRule  RepeatRule
+	dtStamp     time.Time
 }
 
 func (e *IcsEvent) uid() string {
@@ -22,6 +23,10 @@ func (e *IcsEvent) uid() string {
 func (e *IcsEvent) ToIcs(timezone *Timezone) string {
 	result := strings.Builder{}
 	result.WriteString("BEGIN:VEVENT\n")
+	if e.dtStamp.IsZero() {
+		e.dtStamp = time.Now()
+	}
+	result.WriteString("DTSTAMP" + TimeToIcs(e.dtStamp, timezone, ":") + "\n")
 	result.WriteString("SUMMARY:" + e.summary + "\n")
 	if e.description != "" {
 		result.WriteString("DESCRIPTION:" + e.description + "\n")

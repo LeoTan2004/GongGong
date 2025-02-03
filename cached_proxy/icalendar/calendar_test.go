@@ -46,6 +46,7 @@ func TestIcsCalendar_ToIcs2(t *testing.T) {
 			},
 			start:      time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC),
 			end:        time.Date(2025, 2, 1, 1, 0, 0, 0, time.UTC),
+			dtStamp:    time.Date(2025, 2, 1, 0, 0, 0, 0, time.UTC),
 			alarms:     alarms,
 			repeatRule: rrule,
 		},
@@ -57,6 +58,7 @@ func TestIcsCalendar_ToIcs2(t *testing.T) {
 			},
 			start:      time.Date(2025, 2, 3, 0, 0, 0, 0, time.UTC),
 			end:        time.Date(2025, 2, 3, 1, 0, 0, 0, time.UTC),
+			dtStamp:    time.Date(2025, 2, 3, 0, 0, 0, 0, time.UTC),
 			alarms:     alarms,
 			repeatRule: rrule,
 		},
@@ -74,6 +76,7 @@ func TestIcsCalendar_ToIcs2(t *testing.T) {
 	if err != nil {
 		t.Errorf("IcsCalendar.ToIcs() = %v, want %v", err, nil)
 	}
+	print(result)
 	expected := string(bytes)
 	if result != expected {
 		t.Errorf("IcsCalendar.ToIcs() = %v, want %v", result, expected)

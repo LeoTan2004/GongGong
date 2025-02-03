@@ -14,6 +14,7 @@ func TestIcsEvent_ToIcs(t *testing.T) {
 		end         time.Time
 		alarms      []Alarm
 		repeatRule  RepeatRule
+		dtStamp     time.Time
 	}
 	type args struct {
 		timezone *Timezone
@@ -31,14 +32,16 @@ func TestIcsEvent_ToIcs(t *testing.T) {
 				description: "description",
 				start:       time.Date(2021, 1, 1, 0, 0, 0, 0, time.UTC),
 				end:         time.Date(2021, 1, 1, 1, 0, 0, 0, time.UTC),
+				dtStamp:     time.Date(2025, 2, 3, 12, 34, 32, 0, time.UTC),
 			},
 			args: args{},
-			want: "BEGIN:VEVENT\nSUMMARY:summary\nDESCRIPTION:description\nDTSTART:20210101T000000Z\nDTEND:20210101T010000Z\nUID:summary20210101T000000\nEND:VEVENT\n",
+			want: "BEGIN:VEVENT\nDTSTAMP:20250203T123432Z\nSUMMARY:summary\nDESCRIPTION:description\nDTSTART:20210101T000000Z\nDTEND:20210101T010000Z\nUID:summary20210101T000000\nEND:VEVENT\n",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			e := &IcsEvent{
+				dtStamp:     tt.fields.dtStamp,
 				summary:     tt.fields.summary,
 				description: tt.fields.description,
 				location:    tt.fields.location,
