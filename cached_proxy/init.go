@@ -37,6 +37,8 @@ func updateTask[V any](update func(*feign.Student) (*V, error)) func(string) (*V
 				return nil, false
 			}
 			err = StudentService.SetStudent(a.AccountID(), a.GetPassword(), false)
+			// fix 设置后需要重新获取一次学生账户
+			student, _ = StudentService.GetStudent(studentID)
 			if err != nil {
 				log.Printf("account %s is locked", studentID)
 			}
