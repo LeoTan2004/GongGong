@@ -39,15 +39,12 @@ func Whoami(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-	if account == nil || account.Status() != account2.Normal {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
 	resp := feign.CommonResponse[map[string]string]{
 		Code:    1,
 		Message: "success",
 		Data: map[string]string{
 			"username": account.AccountID(),
+			"status":   account.Status().String(),
 		},
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -137,6 +134,7 @@ func (c *InfoGetter[V]) GetInfo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
+	w.Header().Set("Content-Type", "application/json")
 	account := c.checkToken(w, r)
 	if account == nil {
 		return
@@ -150,7 +148,6 @@ func (c *InfoGetter[V]) GetInfo(w http.ResponseWriter, r *http.Request) {
 		Message: "success",
 		Data:    info,
 	}
-	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -208,6 +205,10 @@ func (c *CalendarGetter[V]) GetInfo(w http.ResponseWriter, r *http.Request) {
 	calendar, err := c.calendarService.GetInfo(account.AccountID())
 	if err != nil {
 		w.WriteHeader(http.StatusNonAuthoritativeInfo)
+	}
+	if calendar == nil || info == nil {
+		http.Error(w, "Data Updating", http.StatusNonAuthoritativeInfo)
+		return
 	}
 	resp := c.convertFunc(info, calendar)
 	if resp == nil {
@@ -322,7 +323,7 @@ func convertCourseToEvent(course feign.Course, calendar *feign.TeachingCalendar,
 	event.SetDescription(desc)
 	event.SetLocation(location)
 	date := calendar.StartTime().AddDate(0, 0, (start-1)*7+feign.Days2Int[course.Day])
-	tb := timetable.Times
+	tb := timetable.EventTimes
 	startTime := tb[course.StartTime-1].StartTime.AddDate(date.Year(), int(date.Month()), date.Day())
 	endTime := tb[course.StartTime+course.Duration-2].EndTime.AddDate(date.Year(), int(date.Month()), date.Day())
 	event.SetStart(startTime)

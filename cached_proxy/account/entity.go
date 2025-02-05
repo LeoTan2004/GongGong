@@ -8,6 +8,16 @@ const (
 	Banned
 )
 
+func (s Status) String() string {
+	switch s {
+	case Normal:
+		return "Normal"
+	case Banned:
+		return "Banned"
+	}
+	return "Unknown"
+}
+
 // Account 定义了账户的接口。
 type Account interface {
 	// AccountID 获取账户的唯一标识符。

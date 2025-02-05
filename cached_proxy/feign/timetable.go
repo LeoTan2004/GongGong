@@ -11,7 +11,7 @@ type EventTimes struct {
 }
 
 type TimeTable struct {
-	Times []EventTimes
+	EventTimes []EventTimes
 }
 
 var (
@@ -19,7 +19,7 @@ var (
 	summerStart     = time.Date(0, 5, 1, 0, 0, 0, 0, zone)
 	summerEnd       = time.Date(0, 10, 1, 0, 0, 0, 0, zone)
 	SummerTimeTable = TimeTable{
-		Times: []EventTimes{
+		EventTimes: []EventTimes{
 			{
 				StartTime: time.Date(0, 0, 0, 8, 0, 0, 0, zone),
 				EndTime:   time.Date(0, 0, 0, 8, 45, 0, 0, zone),
@@ -61,7 +61,7 @@ var (
 		},
 	}
 	WinterTimeTable = TimeTable{
-		Times: []EventTimes{
+		EventTimes: []EventTimes{
 			{
 				StartTime: time.Date(0, 0, 0, 8, 0, 0, 0, zone),
 				EndTime:   time.Date(0, 0, 0, 8, 45, 0, 0, zone),
