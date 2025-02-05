@@ -43,7 +43,7 @@ sudo docker-compose up -d
 
 > [!Note]
 >
-> 我们也提供了OPENAPI的json文档在[Gong.openapi.yaml](./docs/Gong.openapi.yaml)
+> 我们也提供了OPENAPI的json文档在[Gong.openapi.json](./docs/Gong.openapi.json)
 > ，你可以将其导入你的Swagger或者其他支持OPENAPI协议的软件中进行预览和测试
 
 我们在***8080***端口上还添加了使用反馈的接口，在`POST http://<host>:<port>/feedback`可以使用。此功能与主服务独立，如果不需要可以在
