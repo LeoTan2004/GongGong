@@ -2231,11 +2231,7 @@
             "headers": {}
           }
         },
-        "security": [
-          {
-            "oauth2_1": []
-          }
-        ]
+        "security": []
       }
     }
   },
