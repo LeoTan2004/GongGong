@@ -19,54 +19,15 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-func Whoami(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Whoami %s\n", r.RequestURI)
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	token := r.Header.Get("token")
-	if token == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-	account, err := AccountService.GetAccountByToken(token)
-	if err != nil {
-		if err.Error() == "account not found" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		} else {
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		}
-		return
-	}
-	resp := feign.CommonResponse[map[string]string]{
-		Code:    1,
-		Message: "success",
-		Data: map[string]string{
-			"username": account.AccountID(),
-			"status":   account.Status().String(),
-		},
-	}
-	w.Header().Set("Content-Type", "application/json")
-	err = json.NewEncoder(w).Encode(resp)
-	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-}
-
 func Login(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-
+	err := r.ParseForm()
 	var creds Credentials
-	err := json.NewDecoder(r.Body).Decode(&creds)
-	if err != nil {
-		http.Error(w, "Bad Request", http.StatusBadRequest)
-		return
-	}
+	creds.Username = r.Form.Get("username")
+	creds.Password = r.Form.Get("password")
 	err = StudentService.SetStudent(creds.Username, creds.Password, true)
 	if err == nil {
 		token, err := AccountService.Login(creds.Username, creds.Password)
@@ -74,12 +35,10 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-		resp := feign.CommonResponse[map[string]string]{
-			Code:    1,
-			Message: "success",
-			Data: map[string]string{
-				"token": token,
-			},
+		resp := map[string]string{
+			"access_token": token,
+			"token_type":   "Bearer",
+			"expires_in":   "315360000",
 		}
 		// 返回 token
 		w.Header().Set("Content-Type", "application/json")
@@ -102,9 +61,16 @@ type TokenService struct {
 }
 
 func (t *TokenService) checkToken(w http.ResponseWriter, r *http.Request) account2.Account {
-	token := r.Header.Get("token")
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		http.Error(w, "Missing Authorization header", http.StatusUnauthorized)
+		return nil
+	}
+
+	// 检查Token格式（Bearer <token>）
+	token := authHeader[len("Bearer "):]
 	if token == "" {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, "Invalid token format", http.StatusUnauthorized)
 		return nil
 	}
 	account, err := AccountService.GetAccountByToken(token)
@@ -166,7 +132,37 @@ var (
 	RequiredRankHandler      = &InfoGetter[feign.Rank]{info: StudentRequiredRankService}
 	ExamHandler              = &InfoGetter[feign.ExamList]{info: StudentExamService}
 	CourseHandler            = &InfoGetter[feign.CourseList]{info: StudentCourseService}
+	AccountHandler           = &AccountGetter{TokenService: TokenService{acc: AccountService}}
 )
+
+type AccountGetter struct {
+	TokenService
+}
+
+func (a *AccountGetter) GetInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	account := a.checkToken(w, r)
+	if account == nil {
+		return
+	}
+	resp := feign.CommonResponse[any]{
+		Code:    1,
+		Message: "success",
+		Data: map[string]string{
+			"status":   account.Status().String(),
+			"username": account.AccountID(),
+		},
+	}
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+}
 
 type CalendarGetter[V any] struct {
 	TokenService

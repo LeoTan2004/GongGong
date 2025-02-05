@@ -18,7 +18,7 @@ func StartApiServer(port int) {
 	server.HandleFunc("/calendar", CalendarHandler.GetInfo)
 	server.HandleFunc("/classroom/today", TodayClassroomHandler.GetInfo)
 	server.HandleFunc("/classroom/tomorrow", TomorrowClassroomHandler.GetInfo)
-	server.HandleFunc("/account", Whoami)
+	server.HandleFunc("/account", AccountHandler.GetInfo)
 	server.HandleFunc("/icalendar/courses", CoursesCalendarHandler.GetInfo)
 	server.HandleFunc("/icalendar/exams", ExamCalendarHandler.GetInfo)
 	fmt.Printf("Proxy Server URL: %s\n", SpiderUrl)
