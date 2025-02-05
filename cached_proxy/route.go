@@ -224,10 +224,6 @@ func (c *CalendarGetter[V]) GetInfo(w http.ResponseWriter, r *http.Request) {
 
 }
 
-var (
-	CourseAlarm = icalendar.NewIcsAlarm("DISPLAY", 25*time.Minute, "距离上课仅剩25分钟")
-)
-
 const ExamTimeLayout = "2006-01-02 15:04:05"
 
 func ExamsConvertCalendar(exams *feign.ExamList, _ *feign.TeachingCalendar) icalendar.Calendar {
@@ -235,6 +231,7 @@ func ExamsConvertCalendar(exams *feign.ExamList, _ *feign.TeachingCalendar) ical
 		return nil
 	}
 	ical := &icalendar.IcsCalendar{}
+	ical.SetProductID(ProdID)
 	ical.SetTimezone(icalendar.GetDefaultTimezone())
 	for _, exam := range exams.Exams {
 		if exam.StartTime == "" {
@@ -251,11 +248,14 @@ func ExamsConvertCalendar(exams *feign.ExamList, _ *feign.TeachingCalendar) ical
 		}
 		location := &icalendar.IcsLocation{}
 		location.SetName(exam.Location)
-		event.SetSummary(fmt.Sprintf("【考试】%s", exam.Name))
+		event.SetSummary(fmt.Sprintf("%s %s", ExamSummaryPrefix, exam.Name))
 		event.SetLocation(location)
-		event.SetDescription(fmt.Sprintf("【%s】%s", exam.Name, exam.Location))
+		event.SetDescription(fmt.Sprintf("【%s】%s %s", exam.Name, exam.Location, ExamDescSuffix))
 		event.SetStart(startTime)
 		event.SetEnd(endTime)
+		for _, a := range DefaultExamAlarms {
+			event.AddAlarm(a)
+		}
 		ical.AddEvent(event)
 	}
 	return ical
@@ -266,6 +266,7 @@ func CoursesConvertCalendar(list *feign.CourseList, calendar *feign.TeachingCale
 		return nil
 	}
 	ical := icalendar.IcsCalendar{}
+	ical.SetProductID(ProdID)
 	ical.SetTimezone(icalendar.GetDefaultTimezone())
 	timetable := calendar.GetTermTimeTable()
 	for _, course := range list.Courses {
@@ -314,8 +315,8 @@ func CoursesConvertCalendar(list *feign.CourseList, calendar *feign.TeachingCale
 }
 
 func convertCourseToEvent(course feign.Course, calendar *feign.TeachingCalendar, start int, end int, timetable feign.TimeTable) *icalendar.IcsEvent {
-	summary := fmt.Sprintf("【课程】%s", course.Name)
-	desc := fmt.Sprintf("【%s】%d节课", course.Teacher, course.Duration)
+	summary := fmt.Sprintf("%s %s", CourseSummaryPrefix, course.Name)
+	desc := fmt.Sprintf("【%s】%d节课%s", course.Teacher, course.Duration, CourseDescSummarySuffix)
 	location := &icalendar.IcsLocation{}
 	location.SetName(course.Classroom)
 	event := icalendar.IcsEvent{}
@@ -333,6 +334,8 @@ func convertCourseToEvent(course feign.Course, calendar *feign.TeachingCalendar,
 	rrule.SetInterval(1)
 	rrule.SetCount(end - start + 1)
 	event.SetRepeatRule(rrule)
-	event.AddAlarm(CourseAlarm)
+	for _, a := range DefaultCourseAlarms {
+		event.AddAlarm(a)
+	}
 	return &event
 }

@@ -31,5 +31,5 @@ func StartApiServer(port int) {
 }
 
 func main() {
-	StartApiServer(8080)
+	StartApiServer(ApiPort)
 }
