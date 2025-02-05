@@ -1,11 +1,10 @@
 import logging
-from typing import Generic, TypeVar
-
 import requests.exceptions
 from fastapi import FastAPI, Body, Header
 from fastapi.params import Path
 from pydantic import BaseModel
 from starlette.responses import PlainTextResponse
+from typing import Generic, TypeVar
 
 from xtu_ems.ems.account import AuthenticationAccount
 from xtu_ems.ems.ems import QZEducationalManageSystem, InvalidCaptchaException, InvalidAccountException, \
@@ -196,4 +195,4 @@ async def get_calendar(token: str = Header(description="用户凭证")):
 if __name__ == '__main__':
     import uvicorn
 
-    uvicorn.run(app=api, host="0.0.0.0", port=8000, log_config="log_config.json")
+    uvicorn.run(app=api, host="0.0.0.0", port=8080, log_config="log_config.json")

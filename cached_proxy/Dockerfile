@@ -19,7 +19,7 @@ WORKDIR /app
 COPY --from=builder /app/cached_proxy /app/cached_proxy
 
 # 暴露应用的端口（根据你的应用而定，例如 8080）
-EXPOSE 8080
+EXPOSE 8000
 
 # 设置可执行文件作为启动命令
 ENTRYPOINT ["./cached_proxy"]

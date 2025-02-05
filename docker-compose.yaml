@@ -13,10 +13,10 @@ services:
   proxy:
     build: ./cached_proxy
     ports:
-      - "8000:8080"
+      - "8000:8000"
     environment:
       - TZ=Asia/Shanghai
-      - SPIDER_URL=http://api:8000
+      - SPIDER_URL=http://api:8080
     volumes:
       - proxy_files:/app/_data
       - /etc/localtime:/etc/localtime:ro  # 设置时区

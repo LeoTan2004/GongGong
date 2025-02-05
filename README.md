@@ -18,20 +18,19 @@
 - **平台服务**
     - 登陆账户
   - 获取相关信息
+  - 获取考试日历
 - 反馈服务
     - 反馈数据
 
 ## 快速上手
 
-### 平台服务
-
-#### 下载源码
+### 下载源码
 
 ```bash
 git clone https://github.com/sky31studio/GongGong.git
 ```
 
-#### 使用Docker环境启动
+### 使用Docker环境启动
 
 切换到根目录，即可
 
@@ -39,7 +38,13 @@ git clone https://github.com/sky31studio/GongGong.git
 sudo docker-compose up -d
 ```
 
-默认端口映射在***8000***端口上，可以通过`http://<host>:<port>/docs`查看接口文档。
+默认端口映射在***8000***
+端口上。接口文档访问[GongGong API-APIFOX](https://apifox.com/apidoc/shared-ef757708-c6aa-4397-9330-4eb4dc623384)
+
+> [!Note]
+>
+> 我们也提供了OPENAPI的json文档在[Gong.openapi.yaml](./docs/Gong.openapi.yaml)
+> ，你可以将其导入你的Swagger或者其他支持OPENAPI协议的软件中进行预览和测试
 
 我们在***8080***端口上还添加了使用反馈的接口，在`POST http://<host>:<port>/feedback`可以使用。此功能与主服务独立，如果不需要可以在
 `docker-compose.yaml`文件中删除该服务。
@@ -48,30 +53,91 @@ sudo docker-compose up -d
 > 生产环境下，建议您将该项目的OpenAPI文档关闭。以避免被恶意攻击。
 > 你可以通过设置环境变量 `ENV=prod` 来启用生产环境下的服务。
 
-#### 使用Python环境启动
+### 其他方式启动
 
 > [!Note]
 >
-> 开发环境为**Python 3.11**，建议使用**Python 3.10+**的环境。
+> 整个服务有两个微服务构成：
+>
+> - 爬虫服务：与校务系统直接交互，但是本身是一个无状态的工具服务:
+> - 平台服务：通过爬虫服务获取数据，是一个由状态的服务，保存着用户的账号和其他信息。同时也服务更新过期数据
 
-1. 安装Python依赖包
+#### 爬虫服务（Python）
+
+1. 检查Python版本
+
+    - 要求Python 3.10+
+
+    - 建议Python 3.11
+
+2. 安装Python依赖包
 
    ```bash
    pip install -r requirements.txt
    ```
 
-2. 检查端口
+3. 检查端口
 
    服务将会使用***8000***端口，在启动之前建议先检查一下端口的使用情况，如果端口正在使用嗯，你可以在`ems-sdk/app.py`
    代码中将端口改成一个可用的端口号。
 
-3. 启动服务
+4. 启动服务
 
    ```bash
-   cd ems-sdk && python app.py
+   cd ems-sdk
+   uvicorn app:api --host 0.0.0.0 --port 8000 --log-config log_config.json
    ```
 
-### 网络爬虫SDK
+#### 平台服务（GO）
+
+1. 编译GO语言程序
+
+   这里要求GO环境在**1.21**以上版本，推荐使用1.23
+
+   ```SH
+   cd cached_proxy
+   CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+       -ldflags="-w -s"  -o cached_proxy ./
+   ```
+
+   运行过程可能有些长，大约持续1分钟左右，运行后在cached_proxy目录下有一个cached_proxy的可执行文件
+
+   Window环境可以使用
+
+   ```cmd
+   cd cached_proxy
+   CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build \
+       -ldflags="-w -s" -o cached_proxy.exe ./
+
+2. 添加环境变量
+
+   > [!Tip]
+   >
+   > 你可以直接到代码`./cached_proxy/config.go`中直接修改`SpiderUrl`的值为`http://localhost:8080`可以跳过这一步骤
+
+   ```sh
+   export SPIDER_URL="http://localhost:8080"
+   ```
+
+   Window用户可以使用
+
+   ```cmd
+   set SPIDER_URL="http://localhost:8080"
+   ```
+
+3. 启动程序
+
+   ```sh
+   sh ./cached_proxy
+   ```
+
+   Window用户可以使用
+
+   ```cmd
+   ./cached_proxy.exe
+   ```
+
+## 网络爬虫SDK
 
 > [!Tip]
 >
@@ -80,7 +146,7 @@ sudo docker-compose up -d
 >
 > 如果你在使用的过程中发现了问题，欢迎通过 [Issues](https://github.com/sky31studio/GongGong/issues) 向我们反映。
 
-#### 下载安装
+### 下载安装
 
 网络爬虫部分代码在 `ems-sdk/xtu_ems` 目录下。我们采用SDK的方式来允许其他人在本项目的基础上进行二次开发。您可以在releases中下载对应版本的SDK并安装。
 
@@ -96,7 +162,7 @@ git clone https://github.com/sky31studio/GongGong.git
 
 然后将ems-sdk设置为源码根目录（**PyCharm**）,或者在**PYTHONPATH**中添加该目录。
 
-#### 如何使用
+### 如何使用
 
 > [!TIP]
 >
