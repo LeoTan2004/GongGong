@@ -27,12 +27,18 @@ type Component interface {
 	// ToIcs 将组件转换为 ICS 格式
 	ToIcs(timezone *Timezone) string
 }
+type Action string
+
+const (
+	DISPLAY = "DISPLAY"
+	AUDIO   = "AUDIO"
+)
 
 // Alarm 是 ICS 文件中的提醒。
 type Alarm interface {
 	Component
 	// SetAction 设置提醒的动作
-	SetAction(action string)
+	SetAction(action Action)
 	// SetTrigger 设置提醒的触发时间
 	SetTrigger(trigger time.Duration)
 	// SetDescription 设置提醒的描述

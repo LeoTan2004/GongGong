@@ -6,30 +6,30 @@ import (
 )
 
 type IcsAlarm struct {
-	action      string
+	action      Action
 	trigger     time.Duration
 	description string
 }
 
-func NewIcsAlarm(action string, trigger time.Duration, description string) *IcsAlarm {
+func NewIcsAlarm(action Action, trigger time.Duration, description string) *IcsAlarm {
 	return &IcsAlarm{action: action, trigger: trigger, description: description}
 }
 
 func (a *IcsAlarm) ToIcs(_ *Timezone) string {
 	result := strings.Builder{}
 	result.WriteString("BEGIN:VALARM\n")
-	if a.action != "" {
-		result.WriteString("ACTION:" + a.action + "\n")
-	} else {
-		result.WriteString("ACTION:DISPLAY\n")
+	action := a.action
+	if action == "" {
+		action = DISPLAY
 	}
+	result.WriteString("ACTION:" + (string(action)) + "\n")
 	result.WriteString("TRIGGER:" + DurationToIcs(a.trigger) + "\n")
 	result.WriteString("DESCRIPTION:" + a.description + "\n")
 	result.WriteString("END:VALARM\n")
 	return result.String()
 }
 
-func (a *IcsAlarm) SetAction(action string) {
+func (a *IcsAlarm) SetAction(action Action) {
 	a.action = action
 }
 
