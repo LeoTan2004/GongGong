@@ -16,10 +16,10 @@
 
 ### 请求
 
-| 字段       | 类型     | 说明  | 格式               |
-|----------|--------|-----|------------------|
-| username | string | 用户名 | application/json |
-| password | string | 密码  | application/json |
+| 字段       | 类型     | 说明  | 格式                    |
+|----------|--------|-----|-----------------------|
+| username | string | 用户名 | x-www-form-urlencoded |
+| password | string | 密码  | x-www-form-urlencoded |
 
 ### 响应
 
