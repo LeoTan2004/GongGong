@@ -246,7 +246,7 @@ func ExamsConvertCalendar(exams *feign.ExamList, _ *feign.TeachingCalendar) ical
 		location.SetName(exam.Location)
 		event.SetSummary(fmt.Sprintf("%s %s", ExamSummaryPrefix, exam.Name))
 		event.SetLocation(location)
-		event.SetDescription(fmt.Sprintf("【%s】%s %s", exam.Name, exam.Location, ExamDescSuffix))
+		event.SetDescription(fmt.Sprintf("%s %s %s", exam.Name, exam.Location, ExamDescSuffix))
 		event.SetStart(startTime)
 		event.SetEnd(endTime)
 		for _, a := range DefaultExamAlarms {
@@ -312,7 +312,7 @@ func CoursesConvertCalendar(list *feign.CourseList, calendar *feign.TeachingCale
 
 func convertCourseToEvent(course feign.Course, calendar *feign.TeachingCalendar, start int, end int, timetable feign.TimeTable) *icalendar.IcsEvent {
 	summary := fmt.Sprintf("%s %s", CourseSummaryPrefix, course.Name)
-	desc := fmt.Sprintf("【%s】%d节课%s", course.Teacher, course.Duration, CourseDescSummarySuffix)
+	desc := fmt.Sprintf("授课教师：%s  %d节课\\n周次：%s\\n%s", course.Teacher, course.Duration, course.Weeks, CourseDescSummarySuffix)
 	location := &icalendar.IcsLocation{}
 	location.SetName(course.Classroom)
 	event := icalendar.IcsEvent{}
@@ -334,4 +334,15 @@ func convertCourseToEvent(course feign.Course, calendar *feign.TeachingCalendar,
 		event.AddAlarm(a)
 	}
 	return &event
+}
+
+func CalPage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	_, err := w.Write(CalBytes)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+	}
 }

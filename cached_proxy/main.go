@@ -21,6 +21,7 @@ func StartApiServer(port int) {
 	server.HandleFunc("/account", AccountHandler.GetInfo)
 	server.HandleFunc("/icalendar/courses", CoursesCalendarHandler.GetInfo)
 	server.HandleFunc("/icalendar/exams", ExamCalendarHandler.GetInfo)
+	server.HandleFunc("/icalendar", CalPage)
 	fmt.Printf("Proxy Server URL: %s\n", SpiderUrl)
 	fmt.Printf("Starting server on :%d\n", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), server)
