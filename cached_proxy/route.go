@@ -139,25 +139,39 @@ type AccountGetter struct {
 	TokenService
 }
 
+type IntrospectionResponse struct {
+	Active   bool   `json:"active"`             // token 是否有效
+	Username string `json:"username,omitempty"` // 用户名
+}
+
 func (a *AccountGetter) GetInfo(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
+	if r.Method != http.MethodPost {
 		http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	account := a.checkToken(w, r)
-	if account == nil {
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
-	resp := feign.CommonResponse[any]{
-		Code:    1,
-		Message: "success",
-		Data: map[string]string{
-			"status":   account.Status().String(),
-			"username": account.AccountID(),
-		},
-	}
+	token := r.Form.Get("token")
+	account, err := AccountService.GetAccountByToken(token)
 	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(resp)
+	var resp any
+	if account == nil {
+		return
+	} else if account.Status() != account2.Normal {
+		resp = map[string]any{
+			"active": false,
+		}
+	} else {
+		resp = &IntrospectionResponse{
+			Username: account.AccountID(),
+			Active:   account.Status() == account2.Normal,
+		}
+	}
+
+	err = json.NewEncoder(w).Encode(resp)
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
