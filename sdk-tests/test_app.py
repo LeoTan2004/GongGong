@@ -17,8 +17,7 @@ def test_login_with_wrong_password():
     """测试错误密码登陆"""
     from common_data import username
     result = client.post("/login", json={"username": username, "password": "wrong_password"})
-    assert result.status_code == 200
-    assert result.json()["code"] == 0
+    assert result.status_code == 401
 
 
 def test_get_courses():
