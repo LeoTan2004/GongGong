@@ -1,5 +1,6 @@
 import logging
 import requests.exceptions
+from aiohttp import ClientConnectorDNSError
 from fastapi import FastAPI, Body, Header
 from fastapi.params import Path
 from pydantic import BaseModel
@@ -111,6 +112,9 @@ async def login(username: str = Body(description="学号"), password: str = Body
     except requests.exceptions.Timeout as exc:
         logger.warning(f"【{username}】登陆时超时")
         return Resp.ems_request_failed("远程连接错误")
+    except ClientConnectorDNSError as e:
+        logger.exception(f"无法访问服务")
+        return Resp.ems_request_failed("远程无法访问")
     except Exception as e:
         logger.exception(f"【{username}】登陆时错误")
         return Resp.error("未知错误")
@@ -126,6 +130,9 @@ async def _run_handler(handler: Handler, token: str):
     except SessionInvalidException as e:
         logger.warning(f"【{handler.__class__.__name__}】执行时session失效")
         return Resp.unauthorized("session失效")
+    except ClientConnectorDNSError as e:
+        logger.exception(f"【{handler.__class__.__name__}】无法访问服务")
+        return Resp.ems_request_failed("远程无法访问")
     except Exception as e:
         logger.exception(f"【{handler.__class__.__name__}】执行时错误")
         return Resp.error("未知错误")

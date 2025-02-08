@@ -25,8 +25,5 @@ services:
 
 volumes:
   api-logs:
-
-  feedback_files:
-
   proxy_files:
 
