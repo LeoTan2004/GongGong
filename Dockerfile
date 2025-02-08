@@ -39,5 +39,7 @@ USER fastapi_user
 # 暴露端口
 EXPOSE 8080
 
+VOLUME /logs
+
 # 入口命令
 ENTRYPOINT ["uvicorn", "app:api", "--host", "0.0.0.0", "--port", "8080", "--log-config", "log_config.json"]
