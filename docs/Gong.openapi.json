@@ -1908,100 +1908,6 @@
         ]
       }
     },
-    "/account": {
-      "get": {
-        "summary": "Get Account",
-        "deprecated": false,
-        "description": "获取账户信息",
-        "tags": [
-          "requires_login"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "code": {
-                      "type": "integer",
-                      "title": "返回状态码",
-                      "description": "1成功，0失败，-1未授权"
-                    },
-                    "message": {
-                      "type": "string",
-                      "title": "返回消息体"
-                    },
-                    "data": {
-                      "title": "返回数据",
-                      "description": "返回数据，可能为null",
-                      "$ref": "#/components/schemas/Account"
-                    }
-                  },
-                  "required": [
-                    "code",
-                    "message",
-                    "data"
-                  ]
-                }
-              }
-            },
-            "headers": {}
-          },
-          "203": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              }
-            },
-            "headers": {}
-          },
-          "401": {
-            "description": "",
-            "content": {
-              "*/*": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                },
-                "examples": {
-                  "1": {
-                    "summary": "成功示例",
-                    "value": "Unauthorized"
-                  }
-                }
-              }
-            },
-            "headers": {}
-          },
-          "x-203:Expire_data": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Common_response",
-                  "required": [
-                    "data"
-                  ]
-                }
-              }
-            },
-            "headers": {}
-          }
-        },
-        "security": [
-          {
-            "oauth2_1": []
-          }
-        ]
-      }
-    },
     "/icalendar/exams": {
       "get": {
         "summary": "Get ICS for Exams",
@@ -2140,6 +2046,98 @@
         ]
       }
     },
+    "/oauth/introspect": {
+      "post": {
+        "summary": "OAuth2 Introspect",
+        "deprecated": false,
+        "description": "获取账户信息",
+        "tags": [
+          "anonymous"
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "active": {
+                      "type": "boolean",
+                      "title": "是否可用"
+                    },
+                    "username": {
+                      "type": "string",
+                      "title": "用户名"
+                    }
+                  },
+                  "required": [
+                    "active",
+                    "username"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "active": true,
+                      "username": "202205566414"
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "203": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            },
+            "headers": {}
+          },
+          "401": {
+            "description": "",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": "Unauthorized"
+                  }
+                }
+              }
+            },
+            "headers": {}
+          },
+          "x-203:Expire_data": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Common_response",
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            },
+            "headers": {}
+          }
+        },
+        "security": []
+      }
+    },
     "/login": {
       "post": {
         "summary": "OAuth2.0 Get Token",
@@ -2178,34 +2176,23 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "code": {
-                      "type": "integer",
-                      "title": "返回状态码",
-                      "description": "1成功，0失败，-1未授权"
-                    },
-                    "message": {
+                    "access_token": {
                       "type": "string",
-                      "title": "返回消息体"
+                      "title": "用户凭证"
                     },
-                    "data": {
-                      "type": "object",
-                      "properties": {
-                        "token": {
-                          "type": "string",
-                          "title": "用户凭证"
-                        }
-                      },
-                      "title": "返回数据",
-                      "description": "返回数据，可能为null",
-                      "required": [
-                        "token"
-                      ]
+                    "expires_in": {
+                      "type": "string",
+                      "title": "有效期限",
+                      "description": "目前暂时无用，设置为最大"
+                    },
+                    "token_type": {
+                      "type": "string"
                     }
                   },
                   "required": [
-                    "code",
-                    "message",
-                    "data"
+                    "access_token",
+                    "expires_in",
+                    "token_type"
                   ]
                 }
               }
@@ -3014,7 +3001,7 @@
         "flows": {
           "password": {
             "authorizationUrl": "",
-            "tokenUrl": "http://111.230.116.67:8000/login",
+            "tokenUrl": "{{baseUrl}}/login",
             "refreshUrl": "",
             "scopes": {}
           }
