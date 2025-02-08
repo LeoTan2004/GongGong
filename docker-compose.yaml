@@ -1,7 +1,7 @@
 services:
   #  主服务
   api:
-    build: .
+    build: ./ems-sdk
     environment:
       - TZ=Asia/Shanghai
       - ENV=prod

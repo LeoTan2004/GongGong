@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-with open('../requirements.ems.txt', 'r') as f:
+with open('requirements.ems.txt', 'r') as f:
     requirements = [req.strip() for req in f.readlines()]
 print(requirements)
 setup(

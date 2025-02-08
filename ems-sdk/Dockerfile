@@ -31,7 +31,11 @@ RUN useradd -m fastapi_user && \
 #RUN chmod -R u+w /logs
 
 # 复制源码文件
-COPY ./ems-sdk /app
+COPY ./ /app
+
+RUN rm -f /app/setup.py && \
+    rm -f /app/requirements.*.txt && \
+    rm -f /app/Dockerfile
 
 # 切换到非 root 用户
 USER fastapi_user
