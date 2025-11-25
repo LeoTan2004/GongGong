@@ -41,9 +41,17 @@ RUN rm -f /app/setup.py && \
 USER fastapi_user
 
 # 暴露端口
-EXPOSE 8080
+# 把端口做成环境变量，供运行时注入
+ENV PORT=8080
+EXPOSE ${PORT}
+
+
 
 VOLUME /logs
 
 # 入口命令
-ENTRYPOINT ["uvicorn", "app:api", "--host", "0.0.0.0", "--port", "8080", "--log-config", "log_config.json"]
+# 用 shell 格式启动，让 $PORT 被展开
+CMD uvicorn app:api \
+    --host 0.0.0.0 \
+    --port ${PORT} \
+    --log-config log_config.json
